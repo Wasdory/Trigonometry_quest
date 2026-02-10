@@ -1,0 +1,67 @@
+‘âàãªâãà  ¯ ¯®ª
+‘¥à¨©­ë© ­®¬¥à â®¬ : 627E-89CE
+C:.
+³   app.py
+³   game_data.json
+³   requirements.txt
+³   run.py
+³   test_minimal.py
+³   test_simple.py
+³   tree.txt
+³   user_progress.json
+³   
+ÃÄÄÄai_modules
+³   ³   init.py
+³   ³   local_ai.py
+³   ³   __init__.py
+³   ³   
+³   ÀÄÄÄ__pycache__
+³           local_ai.cpython-311.pyc
+³           __init__.cpython-311.pyc
+³           
+ÃÄÄÄgame
+³   ³   game_engine.py
+³   ³   init.py
+³   ³   __init__.py
+³   ³   
+³   ÀÄÄÄ__pycache__
+³           game_engine.cpython-311.pyc
+³           __init__.cpython-311.pyc
+³           
+ÃÄÄÄmath_engine
+³   ³   init.py
+³   ³   plotter.py
+³   ³   trig_solver.py
+³   ³   __init__.py
+³   ³   
+³   ÀÄÄÄ__pycache__
+³           plotter.cpython-311.pyc
+³           trig_solver.cpython-311.pyc
+³           __init__.cpython-311.pyc
+³           
+ÃÄÄÄstatic
+³   ³   __init__.py
+³   ³   
+³   ÃÄÄÄcss
+³   ³       game.css
+³   ³       lab.css
+³   ³       style.css
+³   ³       
+³   ÀÄÄÄjs
+³           game.js
+³           lab.js
+³           main.js
+³           
+ÃÄÄÄtemplates
+³       game.html
+³       index.html
+³       lab.html
+³       levels.html
+³       __init__.py
+³       
+ÃÄÄÄtests
+³       test_all.py
+³       
+ÀÄÄÄ__pycache__
+        app.cpython-311.pyc
+        

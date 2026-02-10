@@ -5,748 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trigonometry Quest - Игра</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/game.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* Основные стили для игры */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
-        }
-        
-        .game-wrapper {
-            display: flex;
-            min-height: 100vh;
-        }
-        
-        /* Боковая панель */
-        .sidebar {
-            width: 300px;
-            background: #2c3e50;
-            color: white;
-            padding: 25px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 3px 0 15px rgba(0,0,0,0.2);
-        }
-        
-        .user-profile {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #34495e;
-        }
-        
-        .avatar {
-            width: 80px;
-            height: 80px;
-            background: #4CAF50;
-            border-radius: 50%;
-            margin: 0 auto 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-        }
-        
-        .level-badge {
-            display: inline-block;
-            background: #4CAF50;
-            padding: 8px 15px;
-            border-radius: 20px;
-            margin-top: 10px;
-            font-weight: bold;
-            font-size: 1.1rem;
-        }
-        
-        .stats-panel {
-            background: #34495e;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 25px;
-        }
-        
-        .stats-panel h4 {
-            margin-bottom: 15px;
-            color: #ecf0f1;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.1rem;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-        }
-        
-        .stat-item {
-            text-align: center;
-            padding: 15px;
-            background: #2c3e50;
-            border-radius: 8px;
-            transition: transform 0.3s;
-        }
-        
-        .stat-item:hover {
-            transform: translateY(-2px);
-        }
-        
-        .stat-value {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #4CAF50;
-            margin: 5px 0;
-        }
-        
-        .stat-label {
-            font-size: 0.9rem;
-            color: #bdc3c7;
-        }
-        
-        .achievements-panel {
-            flex-grow: 1;
-            overflow-y: auto;
-            margin-bottom: 25px;
-        }
-        
-        .achievements-panel h4 {
-            margin-bottom: 15px;
-            color: #ecf0f1;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.1rem;
-        }
-        
-        #achievements-list {
-            max-height: 200px;
-            overflow-y: auto;
-            padding-right: 5px;
-        }
-        
-        .achievement-item {
-            background: #34495e;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border-left: 4px solid #4CAF50;
-        }
-        
-        .achievement-icon {
-            font-size: 1.5rem;
-            min-width: 30px;
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 30px 20px;
-            color: #7f8c8d;
-        }
-        
-        .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            opacity: 0.5;
-        }
-        
-        .navigation {
-            margin-top: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .nav-btn {
-            padding: 12px;
-            background: #34495e;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            font-size: 1rem;
-            transition: all 0.3s;
-        }
-        
-        .nav-btn:hover {
-            background: #4CAF50;
-            transform: translateY(-2px);
-        }
-        
-        /* Основное содержимое */
-        .game-main {
-            flex: 1;
-            padding: 30px;
-            overflow-y: auto;
-            background: #f8f9fa;
-        }
-        
-        .game-header {
-            text-align: center;
-            margin-bottom: 40px;
-            padding-bottom: 25px;
-            border-bottom: 2px solid #e9ecef;
-        }
-        
-        .game-header h1 {
-            color: #4CAF50;
-            font-size: 2.8rem;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .game-subtitle {
-            color: #666;
-            font-size: 1.2rem;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        
-        /* Секция уровней */
-        .levels-section {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 40px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-        }
-        
-        .levels-section h2 {
-            color: #4CAF50;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 1.8rem;
-        }
-        
-        .levels-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
-        }
-        
-        .level-card {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            border: 3px solid #e9ecef;
-            transition: all 0.3s;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .level-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 5px;
-            background: #4CAF50;
-            transform: scaleX(0);
-            transition: transform 0.3s;
-        }
-        
-        .level-card.unlocked {
-            border-color: #4CAF50;
-        }
-        
-        .level-card.unlocked:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
-        }
-        
-        .level-card.unlocked:hover::before {
-            transform: scaleX(1);
-        }
-        
-        .level-card.locked {
-            opacity: 0.7;
-            cursor: not-allowed;
-            filter: grayscale(0.5);
-        }
-        
-        .level-card h3 {
-            color: #4CAF50;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 1.4rem;
-        }
-        
-        .level-progress {
-            height: 10px;
-            background: #e9ecef;
-            border-radius: 5px;
-            margin: 20px 0;
-            overflow: hidden;
-            position: relative;
-        }
-        
-        .level-progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #4CAF50, #45a049);
-            border-radius: 5px;
-            transition: width 0.5s ease-out;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .level-progress-fill::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            animation: shimmer 2s infinite;
-        }
-        
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-        
-        .level-stats {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.95rem;
-            color: #666;
-            margin-bottom: 20px;
-        }
-        
-        .start-level-btn {
-            width: 100%;
-            padding: 12px;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 1rem;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        
-        .start-level-btn:hover {
-            background: #45a049;
-            transform: translateY(-2px);
-        }
-        
-        .start-level-btn:disabled {
-            background: #cccccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        /* Секция задачи */
-        #task-section {
-            display: none;
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 40px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            animation: slideIn 0.5s ease;
-        }
-        
-        @keyframes slideIn {
-            from { 
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to { 
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .task-card {
-            position: relative;
-        }
-        
-        .task-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #e9ecef;
-        }
-        
-        .task-header h3 {
-            color: #4CAF50;
-            margin: 0;
-            font-size: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .task-points {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #ff9800;
-            font-weight: bold;
-            font-size: 1.1rem;
-            background: #fff8e1;
-            padding: 8px 15px;
-            border-radius: 20px;
-        }
-        
-        #task-text {
-            font-size: 1.3rem;
-            margin-bottom: 30px;
-            padding: 25px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            border-left: 5px solid #4CAF50;
-            line-height: 1.6;
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
-        }
-        
-        .solution-area {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 10px;
-            margin-bottom: 25px;
-            border: 2px solid #e9ecef;
-        }
-        
-        .input-group {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        
-        #answer-input {
-            flex: 1;
-            padding: 15px 20px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            transition: all 0.3s;
-            font-family: 'Courier New', monospace;
-        }
-        
-        #answer-input:focus {
-            outline: none;
-            border-color: #4CAF50;
-            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
-            transform: translateY(-2px);
-        }
-        
-        .solve-btn {
-            padding: 15px 30px;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: all 0.3s;
-            min-width: 150px;
-        }
-        
-        .solve-btn:hover {
-            background: #45a049;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
-        }
-        
-        .solve-btn:active {
-            transform: translateY(0);
-        }
-        
-        .hint-area {
-            margin-top: 20px;
-        }
-        
-        .hint-btn {
-            padding: 12px 25px;
-            background: #ffd54f;
-            color: #333;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1rem;
-            transition: all 0.3s;
-        }
-        
-        .hint-btn:hover {
-            background: #ffca28;
-            transform: translateY(-2px);
-        }
-        
-        #hint-display {
-            margin-top: 20px;
-            padding: 20px;
-            background: #fff8e1;
-            border-radius: 10px;
-            border-left: 5px solid #ffd54f;
-            animation: fadeIn 0.5s ease;
-            display: none;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        #result-area {
-            padding: 25px;
-            border-radius: 10px;
-            margin: 25px 0;
-            min-height: 80px;
-            animation: fadeIn 0.5s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-        }
-        
-        #result-area.success {
-            background: linear-gradient(135deg, #d4edda, #c3e6cb);
-            color: #155724;
-            border: 2px solid #c3e6cb;
-        }
-        
-        #result-area.error {
-            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
-            color: #721c24;
-            border: 2px solid #f5c6cb;
-        }
-        
-        .task-actions {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-        }
-        
-        .action-btn {
-            flex: 1;
-            padding: 15px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: all 0.3s;
-        }
-        
-        .action-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        .action-btn:nth-child(1) {
-            background: #2196F3;
-            color: white;
-        }
-        
-        .action-btn:nth-child(1):hover {
-            background: #1976D2;
-        }
-        
-        .action-btn:nth-child(2) {
-            background: #9C27B0;
-            color: white;
-        }
-        
-        .action-btn:nth-child(2):hover {
-            background: #7B1FA2;
-        }
-        
-        .action-btn:nth-child(3) {
-            background: #f44336;
-            color: white;
-        }
-        
-        .action-btn:nth-child(3):hover {
-            background: #d32f2f;
-        }
-        
-        /* Инструкции */
-        .instructions {
-            background: #e8f5e9;
-            padding: 30px;
-            border-radius: 15px;
-            border-left: 5px solid #4CAF50;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-        
-        .instructions h3 {
-            color: #4CAF50;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 1.5rem;
-        }
-        
-        .instructions ol {
-            padding-left: 25px;
-            color: #555;
-            line-height: 1.7;
-        }
-        
-        .instructions li {
-            margin-bottom: 12px;
-            padding-left: 10px;
-        }
-        
-        .instructions li strong {
-            color: #4CAF50;
-        }
-        
-        /* Адаптивность */
-        @media (max-width: 1024px) {
-            .game-wrapper {
-                flex-direction: column;
-            }
-            
-            .sidebar {
-                width: 100%;
-                padding: 20px;
-            }
-            
-            .stats-grid {
-                grid-template-columns: repeat(4, 1fr);
-            }
-            
-            .levels-container {
-                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .game-main {
-                padding: 20px;
-            }
-            
-            .game-header h1 {
-                font-size: 2.2rem;
-            }
-            
-            .levels-container {
-                grid-template-columns: 1fr;
-            }
-            
-            .input-group {
-                flex-direction: column;
-            }
-            
-            .solve-btn {
-                width: 100%;
-            }
-            
-            .task-actions {
-                flex-direction: column;
-            }
-            
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-        
-        /* Уведомления */
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 10px;
-            color: white;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            z-index: 1000;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-            animation: slideInRight 0.3s ease, fadeOut 0.3s ease 2.7s;
-            max-width: 400px;
-        }
-        
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
-        @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; }
-        }
-        
-        .notification.success {
-            background: linear-gradient(135deg, #4CAF50, #45a049);
-        }
-        
-        .notification.error {
-            background: linear-gradient(135deg, #f44336, #d32f2f);
-        }
-        
-        .notification.info {
-            background: linear-gradient(135deg, #2196F3, #1976D2);
-        }
-        
-        /* Полоса загрузки */
-        .loading-bar {
-            height: 4px;
-            background: linear-gradient(90deg, #4CAF50, #45a049, #4CAF50);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite linear;
-            border-radius: 2px;
-            margin: 10px 0;
-        }
-        
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-    </style>
 </head>
 <body>
-    <div class="game-wrapper">
+    <div class="game-container">
         <!-- Боковая панель -->
         <aside class="sidebar">
             <div class="user-profile">
@@ -817,60 +80,60 @@
             
             <div class="levels-section">
                 <h2><i class="fas fa-flag-checkered"></i> Выберите уровень</h2>
-                <p style="color: #666; margin-bottom: 25px; font-size: 1.1rem;">Начните с первого уровня и продвигайтесь к более сложным задачам</p>
+                <p class="section-description">Начните с первого уровня и продвигайтесь к более сложным задачам</p>
                 
                 <div id="levels-container" class="levels-container">
                     <!-- Уровни будут загружены здесь -->
                 </div>
             </div>
             
-            <div id="task-section">
-                <h2><i class="fas fa-puzzle-piece"></i> Решение задачи</h2>
-                
-                <div class="task-card">
-                    <div class="task-header">
-                        <h3 id="task-level"><i class="fas fa-layer-group"></i> Уровень 1</h3>
-                        <div class="task-points">
-                            <i class="fas fa-star"></i>
-                            <span id="task-points">10 очков</span>
-                        </div>
-                    </div>
-                    
-                    <div class="task-content">
-                        <div id="task-text">Загрузка задачи...</div>
-                        
-                        <div class="solution-area">
-                            <div class="input-group">
-                                <input type="text" id="answer-input" placeholder="Введите ваш ответ здесь...">
-                                <button class="solve-btn" onclick="checkAnswer()">
-                                    <i class="fas fa-check"></i> Проверить ответ
-                                </button>
+            <div id="task-section" style="display: none;">
+                <div class="task-section">
+                    <div class="task-card">
+                        <div class="task-header">
+                            <h3 id="task-level"><i class="fas fa-layer-group"></i> Уровень 1</h3>
+                            <div class="task-points">
+                                <i class="fas fa-star"></i>
+                                <span id="task-points">10 очков</span>
                             </div>
+                        </div>
+                        
+                        <div class="task-content">
+                            <div id="task-text">Загрузка задачи...</div>
                             
-                            <div class="hint-area">
-                                <button class="hint-btn" onclick="getHint()">
-                                    <i class="fas fa-lightbulb"></i> Получить подсказку
-                                </button>
-                                <div id="hint-display">
-                                    <!-- Подсказка появится здесь -->
+                            <div class="solution-area">
+                                <div class="input-group">
+                                    <input type="text" id="answer-input" placeholder="Введите ваш ответ здесь...">
+                                    <button class="solve-btn" onclick="checkAnswer()">
+                                        <i class="fas fa-check"></i> Проверить ответ
+                                    </button>
+                                </div>
+                                
+                                <div class="hint-area">
+                                    <button class="hint-btn" onclick="getHint()">
+                                        <i class="fas fa-lightbulb"></i> Получить подсказку
+                                    </button>
+                                    <div id="hint-display">
+                                        <!-- Подсказка появится здесь -->
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div id="result-area">
-                            <!-- Результат проверки появится здесь -->
-                        </div>
-                        
-                        <div class="task-actions">
-                            <button class="action-btn" onclick="loadAnotherTask()">
-                                <i class="fas fa-redo"></i> Другая задача
-                            </button>
-                            <button class="action-btn" onclick="getHint()">
-                                <i class="fas fa-robot"></i> Объяснение решения
-                            </button>
-                            <button class="action-btn" onclick="closeTask()">
-                                <i class="fas fa-times"></i> Закрыть задачу
-                            </button>
+                            
+                            <div id="result-area">
+                                <!-- Результат проверки появится здесь -->
+                            </div>
+                            
+                            <div class="task-actions">
+                                <button class="action-btn" onclick="skipTask()">
+                                    <i class="fas fa-redo"></i> Другая задача
+                                </button>
+                                <button class="action-btn" onclick="explainTask()">
+                                    <i class="fas fa-robot"></i> Объяснение решения
+                                </button>
+                                <button class="action-btn" onclick="closeTask()">
+                                    <i class="fas fa-times"></i> Закрыть задачу
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -895,479 +158,293 @@
         // Глобальные переменные
         let currentTask = null;
         let currentLevel = null;
-        
-        // Показать уведомление
-        function showNotification(type, message) {
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.innerHTML = `
-                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-                <span>${message}</span>
-            `;
-            
-            document.body.appendChild(notification);
-            
-            // Удалить через 3 секунды
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 3000);
-        }
-        
-        // Получить параметр из URL
-        function getUrlParam(name) {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(name);
-        }
-        
+
         // Загрузка статистики игры
         async function loadGameStats() {
             try {
                 const response = await fetch('/api/game/stats');
-                if (!response.ok) throw new Error('Ошибка сети');
+                const stats = await response.json();
+                updateUI(stats);
                 
-                const data = await response.json();
-                if (!data.success) throw new Error(data.error || 'Ошибка загрузки');
-                
-                updateUI(data);
-                loadLevels(data.level_progress);
-                
-                // Проверяем уровень из URL
-                const urlLevel = getUrlParam('level');
-                if (urlLevel && !isNaN(urlLevel)) {
-                    const levelNum = parseInt(urlLevel);
-                    const levelProgress = data.level_progress?.[levelNum];
-                    
-                    if (levelProgress && levelProgress.unlocked) {
-                        startLevel(levelNum);
-                    } else {
-                        showNotification('info', 'Этот уровень заблокирован. Завершите предыдущие уровни.');
-                    }
-                }
+                // Загружаем уровни
+                const levelsResponse = await fetch('/api/levels');
+                const levelsData = await levelsResponse.json();
+                loadLevelsUI(levelsData.levels, stats.level_progress);
                 
             } catch (error) {
                 console.error('Ошибка загрузки статистики:', error);
-                showNotification('error', 'Не удалось загрузить статистику');
+                showNotification('error', 'Не удалось загрузить статистику игры');
             }
         }
-        
+
         // Обновление интерфейса
-        function updateUI(data) {
+        function updateUI(stats) {
             // Обновляем счет
-            document.getElementById('score').textContent = data.score || 0;
-            document.getElementById('total-tasks').textContent = data.total_tasks || 0;
-            
-            // Находим текущий уровень (самый высокий разблокированный)
-            let current = 1;
-            if (data.level_progress) {
-                for (const [levelId, progress] of Object.entries(data.level_progress)) {
-                    if (progress.unlocked) {
-                        current = Math.max(current, parseInt(levelId));
-                    }
-                }
-            }
-            
-            document.getElementById('current-level').textContent = current;
-            document.getElementById('level-display').textContent = current;
+            document.getElementById('score').textContent = stats.score || 0;
+            document.getElementById('total-tasks').textContent = stats.total_tasks || 0;
+            document.getElementById('level-display').textContent = stats.current_level || 1;
+            document.getElementById('current-level').textContent = stats.current_level || 1;
             
             // Обновляем достижения
-            updateAchievements(data);
+            document.getElementById('achievements-count').textContent = 
+                stats.unlocked_achievements ? stats.unlocked_achievements.length : 0;
         }
-        
-        // Обновление достижений
-        function updateAchievements(data) {
-            const achievementsList = document.getElementById('achievements-list');
-            const countElement = document.getElementById('achievements-count');
-            
-            const achievements = [];
-            
-            if (data.total_tasks >= 1) {
-                achievements.push({
-                    icon: '🥇',
-                    name: 'Первые шаги',
-                    desc: 'Решена первая задача'
-                });
-            }
-            
-            if (data.total_tasks >= 3) {
-                achievements.push({
-                    icon: '⚡',
-                    name: 'Быстрый ученик',
-                    desc: 'Решено 3 задачи'
-                });
-            }
-            
-            if (data.level_progress?.['1']?.completed >= 2) {
-                achievements.push({
-                    icon: '🎯',
-                    name: 'Мастер уровня 1',
-                    desc: 'Завершен первый уровень'
-                });
-            }
-            
-            if (data.total_tasks >= 5) {
-                achievements.push({
-                    icon: '💪',
-                    name: 'Упорный ученик',
-                    desc: 'Решено 5 задач'
-                });
-            }
-            
-            if (data.level_progress?.['5']?.completed >= 2) {
-                achievements.push({
-                    icon: '👑',
-                    name: 'Мастер тригонометрии',
-                    desc: 'Завершены все уровни'
-                });
-            }
-            
-            countElement.textContent = achievements.length;
-            
-            if (achievements.length === 0) {
-                achievementsList.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-star"></i>
-                        <p>Пока нет достижений</p>
-                        <small>Решайте задачи, чтобы получить достижения!</small>
-                    </div>
-                `;
-            } else {
-                achievementsList.innerHTML = achievements.map(achievement => `
-                    <div class="achievement-item">
-                        <div class="achievement-icon">${achievement.icon}</div>
-                        <div>
-                            <strong>${achievement.name}</strong><br>
-                            <small>${achievement.desc}</small>
-                        </div>
-                    </div>
-                `).join('');
-            }
-        }
-        
-        // Загрузка уровней
-        function loadLevels(levelsProgress) {
+
+        // Загрузка уровней в интерфейс
+        function loadLevelsUI(levels, progress) {
             const container = document.getElementById('levels-container');
-            if (!container) return;
-            
             container.innerHTML = '';
             
-            // Создаем карточки для каждого уровня
             for (let levelId = 1; levelId <= 5; levelId++) {
-                const progress = levelsProgress?.[levelId] || { completed: 0, unlocked: levelId === 1 };
-                const percent = Math.min((progress.completed / 2) * 100, 100);
+                const level = levels[levelId];
+                const levelProgress = progress && progress[levelId] ? progress[levelId] : { completed: 0, required: 2 };
+                const progressPercent = (levelProgress.completed / levelProgress.required) * 100;
                 
                 const levelCard = document.createElement('div');
-                levelCard.className = `level-card ${progress.unlocked ? 'unlocked' : 'locked'}`;
-                
-                if (progress.unlocked) {
-                    levelCard.onclick = () => startLevel(levelId);
-                }
-                
+                levelCard.className = `level-card ${level && level.unlocked ? 'unlocked' : 'locked'}`;
                 levelCard.innerHTML = `
                     <h3><i class="fas fa-layer-group"></i> Уровень ${levelId}</h3>
-                    <p style="color: #666; margin-bottom: 10px; font-size: 0.95rem;">
-                        ${getLevelDescription(levelId)}
-                    </p>
-                    
+                    <div class="level-description">${level ? level.desc : 'Тригонометрические задачи'}</div>
                     <div class="level-progress">
-                        <div class="level-progress-fill" style="width: ${percent}%"></div>
+                        <div class="level-progress-fill" style="width: ${progressPercent}%"></div>
                     </div>
-                    
                     <div class="level-stats">
-                        <span>Прогресс: ${progress.completed}/2</span>
-                        <span>${Math.round(percent)}%</span>
+                        <span>Прогресс: ${levelProgress.completed}/${levelProgress.required}</span>
+                        <span>${Math.round(progressPercent)}%</span>
                     </div>
-                    
-                    <button class="start-level-btn" onclick="event.stopPropagation(); startLevel(${levelId})" 
-                            ${!progress.unlocked ? 'disabled' : ''}>
-                        <i class="fas fa-${progress.unlocked ? 'play' : 'lock'}"></i>
-                        ${progress.unlocked ? (progress.completed >= 2 ? 'Повторить уровень' : 'Начать уровень') : 'Заблокировано'}
-                    </button>
+                    <div class="level-actions">
+                        <button class="start-level-btn" 
+                                onclick="startLevel(${levelId})"
+                                ${level && level.unlocked ? '' : 'disabled'}>
+                            ${level && level.unlocked ? 'Начать уровень' : 'Заблокировано'}
+                        </button>
+                    </div>
                 `;
                 
                 container.appendChild(levelCard);
             }
         }
-        
-        // Описание уровней
-        function getLevelDescription(levelId) {
-            const descriptions = {
-                1: 'Базовые вычисления: sin, cos, tan',
-                2: 'Решение простых уравнений',
-                3: 'Свойства и графики функций',
-                4: 'Прикладные задачи из реальной жизни',
-                5: 'Сложные формулы и тождества'
-            };
-            return descriptions[levelId] || 'Тригонометрические задачи';
-        }
-        
+
         // Начать уровень
         async function startLevel(levelId) {
             try {
                 currentLevel = levelId;
                 
-                // Показываем индикатор загрузки
-                const resultArea = document.getElementById('result-area');
-                resultArea.innerHTML = `
-                    <div style="text-align: center; width: 100%;">
-                        <div class="loading-bar"></div>
-                        <p style="margin-top: 10px; color: #666;">Загрузка задачи...</p>
-                    </div>
-                `;
-                resultArea.className = '';
-                
                 const response = await fetch(`/api/tasks/${levelId}`);
-                if (!response.ok) throw new Error('Ошибка загрузки');
-                
                 const data = await response.json();
-                if (!data.success || !data.task) {
-                    throw new Error('Задачи не найдены');
+                
+                if (data && data.task) {
+                    currentTask = data.task;
+                    
+                    // Показываем секцию с задачей
+                    const taskSection = document.getElementById('task-section');
+                    taskSection.style.display = 'block';
+                    
+                    // Обновляем информацию о задаче
+                    document.getElementById('task-level').innerHTML = `<i class="fas fa-layer-group"></i> Уровень ${levelId}`;
+                    document.getElementById('task-text').textContent = currentTask.question || currentTask.text || 'Описание задачи';
+                    document.getElementById('task-points').textContent = `${currentTask.points || 10} очков`;
+                    
+                    // Очищаем предыдущие результаты
+                    const resultArea = document.getElementById('result-area');
+                    resultArea.innerHTML = '';
+                    resultArea.className = 'result-area';
+                    
+                    const hintDisplay = document.getElementById('hint-display');
+                    hintDisplay.innerHTML = '';
+                    hintDisplay.style.display = 'none';
+                    
+                    const answerInput = document.getElementById('answer-input');
+                    answerInput.value = '';
+                    answerInput.focus();
+                    
+                    // Прокручиваем к задаче
+                    taskSection.scrollIntoView({ behavior: 'smooth' });
+                    
+                    showNotification('success', `Загружена задача уровня ${levelId}`);
                 }
-                
-                currentTask = data.task;
-                
-                // Показываем секцию с задачей
-                const taskSection = document.getElementById('task-section');
-                taskSection.style.display = 'block';
-                
-                // Обновляем информацию о задаче
-                document.getElementById('task-level').innerHTML = `<i class="fas fa-layer-group"></i> Уровень ${levelId}`;
-                document.getElementById('task-text').textContent = currentTask.question;
-                document.getElementById('task-points').textContent = `${currentTask.points} очков`;
-                
-                // Очищаем предыдущие результаты
-                resultArea.innerHTML = '';
-                resultArea.className = '';
-                document.getElementById('hint-display').style.display = 'none';
-                document.getElementById('hint-display').innerHTML = '';
-                document.getElementById('answer-input').value = '';
-                document.getElementById('answer-input').focus();
-                
-                // Прокручиваем к задаче
-                taskSection.scrollIntoView({ behavior: 'smooth' });
-                
-                showNotification('success', `Загружена задача уровня ${levelId}`);
-                
             } catch (error) {
                 console.error('Ошибка при загрузке задачи:', error);
-                showNotification('error', 'Не удалось загрузить задачу. Попробуйте еще раз.');
-                
-                const resultArea = document.getElementById('result-area');
-                resultArea.innerHTML = `
-                    <div style="text-align: center; color: #f44336;">
-                        <i class="fas fa-exclamation-triangle fa-2x"></i>
-                        <p style="margin-top: 10px;">${error.message}</p>
-                    </div>
-                `;
-                resultArea.className = 'error';
+                showNotification('error', 'Не удалось загрузить задачу');
             }
         }
-        
+
         // Проверить ответ
         async function checkAnswer() {
             const answerInput = document.getElementById('answer-input');
             const resultArea = document.getElementById('result-area');
             
-            if (!answerInput || !resultArea || !currentTask) return;
+            if (!answerInput || !currentTask) return;
             
             const userAnswer = answerInput.value.trim();
             if (!userAnswer) {
                 showNotification('info', 'Пожалуйста, введите ответ');
-                answerInput.focus();
                 return;
             }
             
             // Показываем загрузку
-            resultArea.innerHTML = `
-                <div style="text-align: center; width: 100%;">
-                    <div class="loading-bar"></div>
-                    <p style="margin-top: 10px; color: #666;">Проверяем ответ...</p>
-                </div>
-            `;
-            resultArea.className = '';
+            resultArea.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Проверяем ответ...';
+            resultArea.className = 'result-area';
             
             try {
                 const response = await fetch('/api/check', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         answer: userAnswer,
-                        task_id: currentTask.id
+                        task_id: currentTask.id || 'task_' + currentLevel + '_1'
                     })
                 });
                 
-                if (!response.ok) throw new Error('Ошибка сети');
+                const result = await response.json();
                 
-                const data = await response.json();
-                
-                if (data.success) {
-                    if (data.correct) {
-                        // Правильный ответ
-                        resultArea.innerHTML = `
-                            <div style="text-align: center;">
-                                <i class="fas fa-check-circle" style="color: #4CAF50; font-size: 3rem;"></i>
-                                <h3 style="color: #4CAF50; margin: 15px 0;">${data.message}</h3>
-                                <p style="font-size: 1.2rem;">Вы заработали <strong style="color: #ff9800;">${data.points} очков</strong>! 🎉</p>
-                                <p style="margin-top: 20px; color: #666; font-size: 0.95rem;">
-                                    <i class="fas fa-info-circle"></i> Статистика обновлена
-                                </p>
+                if (result.correct) {
+                    resultArea.innerHTML = `
+                        <div class="result-success">
+                            <i class="fas fa-check-circle"></i> 
+                            <div>
+                                <strong>Правильно!</strong>
+                                <p>${result.message || 'Отличная работа!'}</p>
+                                <p class="points-earned">Вы заработали ${result.points || 10} очков!</p>
                             </div>
-                        `;
-                        resultArea.className = 'success';
-                        
-                        showNotification('success', `Правильно! +${data.points} очков`);
-                        
-                        // Обновляем статистику
-                        setTimeout(() => {
-                            loadGameStats();
-                        }, 1000);
-                        
-                        // Очищаем поле ввода
-                        answerInput.value = '';
-                        
-                    } else {
-                        // Неправильный ответ
-                        resultArea.innerHTML = `
-                            <div style="text-align: center;">
-                                <i class="fas fa-times-circle" style="color: #f44336; font-size: 3rem;"></i>
-                                <h3 style="color: #f44336; margin: 15px 0;">${data.message}</h3>
-                                <p style="margin-top: 15px; color: #666;">
-                                    Попробуйте еще раз или используйте подсказку.
-                                </p>
-                            </div>
-                        `;
-                        resultArea.className = 'error';
-                        
-                        showNotification('error', 'Неправильный ответ. Попробуйте еще раз!');
-                        
-                        // Выделяем поле ввода для исправления
-                        answerInput.focus();
-                        answerInput.select();
-                    }
+                        </div>
+                    `;
+                    resultArea.className = 'result-area success';
+                    
+                    // Обновляем статистику
+                    setTimeout(loadGameStats, 1000);
+                    
+                    // Очищаем поле ввода
+                    answerInput.value = '';
+                    
                 } else {
-                    throw new Error(data.error || 'Ошибка при проверке');
+                    resultArea.innerHTML = `
+                        <div class="result-error">
+                            <i class="fas fa-times-circle"></i>
+                            <div>
+                                <strong>Неправильно</strong>
+                                <p>${result.message || 'Попробуйте еще раз!'}</p>
+                            </div>
+                        </div>
+                    `;
+                    resultArea.className = 'result-area error';
                 }
-                
             } catch (error) {
                 console.error('Ошибка при проверке ответа:', error);
-                resultArea.innerHTML = `
-                    <div style="text-align: center; color: #f44336;">
-                        <i class="fas fa-exclamation-triangle fa-2x"></i>
-                        <p style="margin-top: 10px;">${error.message}</p>
-                    </div>
-                `;
-                resultArea.className = 'error';
-                
-                showNotification('error', 'Ошибка соединения. Попробуйте еще раз.');
+                resultArea.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Ошибка при проверке ответа';
+                resultArea.className = 'result-area error';
             }
         }
-        
+
         // Получить подсказку
         async function getHint() {
-            if (!currentTask) {
-                showNotification('info', 'Сначала выберите задачу');
-                return;
-            }
+            if (!currentTask) return;
             
             const hintDisplay = document.getElementById('hint-display');
-            hintDisplay.innerHTML = `
-                <div style="text-align: center; color: #666;">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <p>Загружаем подсказку...</p>
-                </div>
-            `;
+            hintDisplay.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Получаем подсказку...';
             hintDisplay.style.display = 'block';
             
             try {
                 const response = await fetch('/api/ai/hint', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        question: currentTask.question
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question: currentTask.question })
                 });
                 
-                if (!response.ok) throw new Error('Ошибка сети');
+                const result = await response.json();
                 
-                const data = await response.json();
-                
-                if (data.success) {
+                if (result.hint) {
                     hintDisplay.innerHTML = `
-                        <div style="padding: 15px; background: #fff8e1; border-radius: 8px;">
-                            <h4 style="color: #ff9800; margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
-                                <i class="fas fa-lightbulb"></i> Подсказка
-                            </h4>
-                            <p style="margin: 0; line-height: 1.6;">${data.hint}</p>
+                        <div class="hint-content">
+                            <strong><i class="fas fa-lightbulb"></i> Подсказка:</strong>
+                            <p>${result.hint}</p>
                         </div>
                     `;
-                    
-                    showNotification('info', 'Подсказка загружена');
-                } else {
-                    throw new Error(data.error || 'Ошибка загрузки подсказки');
                 }
-                
             } catch (error) {
                 console.error('Ошибка при получении подсказки:', error);
-                hintDisplay.innerHTML = `
-                    <div style="text-align: center; color: #f44336;">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <p>${error.message}</p>
-                    </div>
-                `;
+                hintDisplay.innerHTML = 'Не удалось получить подсказку';
+            }
+        }
+
+        // Объяснить задачу
+        async function explainTask() {
+            if (!currentTask) return;
+            
+            const resultArea = document.getElementById('result-area');
+            resultArea.innerHTML = '<i class="fas fa-spinner fa-spin"></i> AI объясняет задачу...';
+            resultArea.className = 'result-area';
+            
+            try {
+                const response = await fetch('/api/ai/explain', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ concept: currentTask.question })
+                });
                 
-                showNotification('error', 'Не удалось загрузить подсказку');
+                const result = await response.json();
+                
+                if (result.explanation) {
+                    resultArea.innerHTML = `
+                        <div class="ai-explanation">
+                            <strong><i class="fas fa-robot"></i> Объяснение AI:</strong>
+                            <p>${result.explanation}</p>
+                        </div>
+                    `;
+                    resultArea.className = 'result-area success';
+                }
+            } catch (error) {
+                console.error('Ошибка при получении объяснения:', error);
+                resultArea.innerHTML = 'Не удалось получить объяснение';
+                resultArea.className = 'result-area error';
             }
         }
-        
-        // Загрузить другую задачу
-        function loadAnotherTask() {
+
+        // Пропустить задачу
+        function skipTask() {
+            const answerInput = document.getElementById('answer-input');
+            const resultArea = document.getElementById('result-area');
+            
+            if (answerInput) answerInput.value = '';
+            if (resultArea) {
+                resultArea.innerHTML = '<i class="fas fa-forward"></i> Задача пропущена';
+                resultArea.className = 'result-area';
+            }
+            
+            // Загружаем новую задачу
             if (currentLevel) {
-                startLevel(currentLevel);
-            } else {
-                showNotification('info', 'Сначала выберите уровень');
+                setTimeout(() => startLevel(currentLevel), 1000);
             }
         }
-        
+
         // Закрыть задачу
         function closeTask() {
             const taskSection = document.getElementById('task-section');
-            taskSection.style.display = 'none';
+            if (taskSection) {
+                taskSection.style.display = 'none';
+            }
             currentTask = null;
-            document.getElementById('answer-input').value = '';
-            
-            showNotification('info', 'Задача закрыта');
         }
-        
+
         // Сбросить прогресс
         async function resetProgress() {
-            if (!confirm('Вы уверены, что хотите сбросить весь прогресс? Все ваши очки и достижения будут потеряны.')) {
+            if (!confirm('Вы уверены, что хотите сбросить весь прогресс? Это действие нельзя отменить.')) {
                 return;
             }
             
             try {
                 const response = await fetch('/api/game/reset', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
+                    headers: { 'Content-Type': 'application/json' }
                 });
                 
-                if (!response.ok) throw new Error('Ошибка сети');
-                
-                const data = await response.json();
-                
-                if (data.success) {
+                if (response.ok) {
                     showNotification('success', 'Прогресс сброшен!');
                     setTimeout(() => {
                         window.location.reload();
                     }, 1500);
                 } else {
-                    throw new Error(data.error || 'Ошибка сброса');
+                    throw new Error('Ошибка сброса');
                 }
                 
             } catch (error) {
@@ -1375,8 +452,46 @@
                 showNotification('error', 'Не удалось сбросить прогресс');
             }
         }
-        
-        // Инициализация
+
+        // Показать уведомление
+        function showNotification(type, message) {
+            // Создаем простое уведомление вверху страницы
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                border-radius: 10px;
+                color: white;
+                font-weight: bold;
+                z-index: 1000;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            `;
+            
+            if (type === 'success') {
+                notification.style.background = 'linear-gradient(135deg, #4CAF50, #45a049)';
+            } else if (type === 'error') {
+                notification.style.background = 'linear-gradient(135deg, #f44336, #d32f2f)';
+            } else {
+                notification.style.background = 'linear-gradient(135deg, #2196F3, #1976D2)';
+            }
+            
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span style="margin-left: 10px;">${message}</span>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 3000);
+        }
+
+        // Инициализация при загрузке страницы
         document.addEventListener('DOMContentLoaded', function() {
             // Обработчик Enter в поле ввода
             const answerInput = document.getElementById('answer-input');
@@ -1391,7 +506,14 @@
             // Загружаем статистику
             loadGameStats();
             
-            console.log('Игровая страница загружена!');
+            // Добавляем глобальные функции
+            window.checkAnswer = checkAnswer;
+            window.getHint = getHint;
+            window.explainTask = explainTask;
+            window.skipTask = skipTask;
+            window.closeTask = closeTask;
+            window.resetProgress = resetProgress;
+            window.startLevel = startLevel;
         });
     </script>
 </body>
