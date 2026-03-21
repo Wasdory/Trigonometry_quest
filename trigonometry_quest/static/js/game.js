@@ -70,6 +70,8 @@ function updateUI(stats) {
     
     // Обновляем уровни
     loadLevels(stats.levels_progress);
+
+    document.getElementById('header-score').textContent = stats.score || 0;
 }
 
 // Загрузка достижений

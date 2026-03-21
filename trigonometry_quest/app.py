@@ -166,36 +166,36 @@ def plot_simple_function():
 
 TASKS = {
     1: [
-        {"id": "task_1_1", "question": "sin(30°) + cos(60°) = ?", "answer": "1.0", "points": 10},
-        {"id": "task_1_2", "question": "tan(45°) = ?", "answer": "1.0", "points": 10},
-        {"id": "task_1_3", "question": "2 * sin(π/6) = ?", "answer": "1.0", "points": 10}
+        {"id": "level_1_task_1", "question": "sin(30°) = ?", "answer": "0.5", "points": 10},
+        {"id": "level_1_task_2", "question": "cos(60°) = ?", "answer": "0.5", "points": 10},
+        {"id": "level_1_task_3", "question": "tan(45°) = ?", "answer": "1", "points": 10}
     ],
     2: [
-        {"id": "task_2_1", "question": "sin(x) = 0.5, x = ? (укажите в градусах)", "answer": "30, 150", "points": 15},
-        {"id": "task_2_2", "question": "cos(x) = √2/2, x = ?", "answer": "45, 315", "points": 15},
-        {"id": "task_2_3", "question": "tan(x) = 1, x = ?", "answer": "45, 225", "points": 15}
+        {"id": "level_2_task_1", "question": "sin(x) = 0.5, наименьший положительный x = ? (в радианах)", "answer": "π/6", "points": 15},
+        {"id": "level_2_task_2", "question": "cos(x) = √2/2, x = ? (в радианах)", "answer": "π/4", "points": 15},
+        {"id": "level_2_task_3", "question": "tan(x) = 1, x = ? (в радианах)", "answer": "π/4", "points": 15}
     ],
     3: [
-        {"id": "task_3_1", "question": "Период sin(x) = ?", "answer": "2π", "points": 20},
-        {"id": "task_3_2", "question": "sin(60°) = ?", "answer": "√3/2", "points": 20},
-        {"id": "task_3_3", "question": "tan не определен при x = ?", "answer": "90°, 270°", "points": 20}
+        {"id": "level_3_task_1", "question": "Период функции sin(x) = ?", "answer": "2π", "points": 20},
+        {"id": "level_3_task_2", "question": "sin²(30°) + cos²(30°) = ?", "answer": "1", "points": 20},
+        {"id": "level_3_task_3", "question": "Чему равен sin(90°)?", "answer": "1", "points": 20}
     ],
     4: [
-        {"id": "task_4_1", "question": "sin²(x) + cos²(x) = ?", "answer": "1", "points": 25},
-        {"id": "task_4_2", "question": "1 + tan²(x) = ?", "answer": "1/cos²(x)", "points": 25},
-        {"id": "task_4_3", "question": "sin(π/2 - x) = ?", "answer": "cos(x)", "points": 25}
+        {"id": "level_4_task_1", "question": "sin(π/2 - x) = ?", "answer": "cos(x)", "points": 25},
+        {"id": "level_4_task_2", "question": "1 + tan²(x) = ?", "answer": "sec²(x)", "points": 25},
+        {"id": "level_4_task_3", "question": "sin(180° - x) = ?", "answer": "sin(x)", "points": 25}
     ],
     5: [
-        {"id": "task_5_1", "question": "sin(2x) = ?", "answer": "2sin(x)cos(x)", "points": 30},
-        {"id": "task_5_2", "question": "cos(2x) = ? (формула через sin и cos)", "answer": "cos²(x)-sin²(x)", "points": 30},
-        {"id": "task_5_3", "question": "sin(45°) = ?", "answer": "√2/2", "points": 30}
+        {"id": "level_5_task_1", "question": "sin(2x) = ?", "answer": "2sin(x)cos(x)", "points": 30},
+        {"id": "level_5_task_2", "question": "cos(2x) = ? (через sin и cos)", "answer": "cos²(x)-sin²(x)", "points": 30},
+        {"id": "level_5_task_3", "question": "sin(45°) = ?", "answer": "√2/2", "points": 30}
     ]
 }
 
 # ИНФОРМАЦИЯ ОБ УРОВНЯХ
 LEVELS = {
-    1: {"name": "Основы", "desc": "Базовые значения", "icon": "🔢", "color": "#4CAF50"},
-    2: {"name": "Уравнения", "desc": "Решение уравнений", "icon": "📐", "color": "#2196F3"},
+    1: {"name": "Основы", "desc": "Базовые значения sin, cos, tan", "icon": "🔢", "color": "#4CAF50"},
+    2: {"name": "Уравнения", "desc": "Решение простых уравнений", "icon": "📐", "color": "#2196F3"},
     3: {"name": "Свойства", "desc": "Свойства функций", "icon": "📊", "color": "#9C27B0"},
     4: {"name": "Тождества", "desc": "Тригонометрические тождества", "icon": "🧮", "color": "#FF9800"},
     5: {"name": "Формулы", "desc": "Формулы сложения", "icon": "🎯", "color": "#E91E63"}
@@ -210,32 +210,45 @@ def load_progress():
         try:
             with open(PROGRESS_FILE, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-                # Убедимся, что есть все 5 уровней
+                
+                # Обеспечиваем наличие всех полей
+                if "score" not in data:
+                    data["score"] = 0
+                if "completed_tasks" not in data:
+                    data["completed_tasks"] = []
                 if "level_progress" not in data:
                     data["level_progress"] = {}
                 
-                for level_id in range(1, 6):
-                    level_key = str(level_id)
+                # Инициализируем все уровни
+                for i in range(1, 6):
+                    level_key = str(i)
                     if level_key not in data["level_progress"]:
                         data["level_progress"][level_key] = {
-                            "completed": 0, 
-                            "unlocked": level_id == 1
+                            "completed": 0,
+                            "unlocked": (i == 1)
                         }
+                    else:
+                        # Убеждаемся, что у каждого уровня есть поля completed и unlocked
+                        if "completed" not in data["level_progress"][level_key]:
+                            data["level_progress"][level_key]["completed"] = 0
+                        if "unlocked" not in data["level_progress"][level_key]:
+                            data["level_progress"][level_key]["unlocked"] = (i == 1)
+                
                 return data
-        except:
-            pass
+        except Exception as e:
+            print(f"Ошибка загрузки прогресса: {e}")
     
-    # Начальные данные для 5 уровней
+    # Возвращаем начальные данные
     initial = {
         "score": 0,
         "completed_tasks": [],
         "level_progress": {}
     }
     
-    for level_id in range(1, 6):
-        initial["level_progress"][str(level_id)] = {
+    for i in range(1, 6):
+        initial["level_progress"][str(i)] = {
             "completed": 0,
-            "unlocked": level_id == 1  # Только 1 уровень разблокирован
+            "unlocked": (i == 1)
         }
     
     return initial
@@ -246,7 +259,8 @@ def save_progress(data):
         with open(PROGRESS_FILE, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
         return True
-    except:
+    except Exception as e:
+        print(f"Ошибка сохранения прогресса: {e}")
         return False
 
 # ========== МАРШРУТЫ ==========
@@ -293,7 +307,7 @@ def api_levels():
         
         level_info.update({
             "id": level_id,
-            "unlocked": prog["unlocked"],
+            "unlocked": prog.get("unlocked", level_id == 1),
             "completed": prog.get("completed", 0),
             "total_tasks": len(TASKS.get(level_id, [])),
             "tasks_count": len(TASKS.get(level_id, []))
@@ -306,14 +320,27 @@ def api_levels():
 def get_task(level_id):
     """Получить задачу для уровня"""
     if 1 <= level_id <= 5 and level_id in TASKS and TASKS[level_id]:
-        task = random.choice(TASKS[level_id])
+        # Получаем прогресс, чтобы исключить уже решенные задачи
+        progress = load_progress()
+        completed_tasks = progress.get("completed_tasks", [])
+        
+        # Фильтруем нерешенные задачи
+        available_tasks = [task for task in TASKS[level_id] if task["id"] not in completed_tasks]
+        
+        # Если все задачи решены, берем любую для повторения
+        if not available_tasks:
+            task = random.choice(TASKS[level_id])
+        else:
+            task = random.choice(available_tasks)
+        
         return jsonify({
             "success": True,
             "task": {
                 "id": task["id"],
                 "question": task["question"],
                 "points": task["points"],
-                "level": level_id
+                "level": level_id,
+                "correct_answer": task["answer"]
             }
         })
     return jsonify({"success": False, "error": "Нет задач для этого уровня"})
@@ -348,7 +375,8 @@ def check_answer():
                         correct_answers.sort()
                         is_correct = user_answers == correct_answers
                     else:
-                        is_correct = user_answer == correct_answer
+                        # Простое сравнение строк или числовое сравнение
+                        is_correct = compare_answers_simple(user_answer, correct_answer)
                     
                     if is_correct:
                         # Обновляем прогресс
@@ -359,7 +387,7 @@ def check_answer():
                             progress["score"] += task["points"]
                             
                             # Обновляем уровень
-                            if task_id.startswith("task_"):
+                            if task_id.startswith("level_"):
                                 parts = task_id.split("_")
                                 if len(parts) >= 2:
                                     level_num = int(parts[1])
@@ -379,7 +407,13 @@ def check_answer():
                                         next_level = level_num + 1
                                         if next_level <= 5:
                                             next_key = str(next_level)
-                                            progress["level_progress"][next_key]["unlocked"] = True
+                                            if next_key not in progress["level_progress"]:
+                                                progress["level_progress"][next_key] = {
+                                                    "completed": 0,
+                                                    "unlocked": True
+                                                }
+                                            else:
+                                                progress["level_progress"][next_key]["unlocked"] = True
                             
                             save_progress(progress)
                     
@@ -392,39 +426,171 @@ def check_answer():
     
     return jsonify({"success": False, "error": "Задача не найдена"})
 
+def compare_answers_simple(user, correct):
+    """Простое сравнение ответов"""
+    if user == correct:
+        return True
+    
+    # Числовое сравнение
+    try:
+        user_num = float(user)
+        correct_num = float(correct)
+        if abs(user_num - correct_num) < 0.0001:
+            return True
+    except:
+        pass
+    
+    return False
+
+@app.route('/api/game/complete', methods=['POST'])
+def complete_task_api():
+    """API для завершения задачи"""
+    try:
+        data = request.json
+        task_id = data.get('task_id')
+        score = data.get('score', 10)
+        
+        if not task_id:
+            return jsonify({"success": False, "error": "Нет ID задачи"})
+        
+        # Получаем текущий прогресс
+        progress = load_progress()
+        
+        # Проверяем, не выполнялась ли задача раньше
+        if task_id in progress.get("completed_tasks", []):
+            return jsonify({
+                "success": False, 
+                "error": "Задача уже выполнена",
+                "already_completed": True
+            })
+        
+        # Добавляем задачу в выполненные
+        if "completed_tasks" not in progress:
+            progress["completed_tasks"] = []
+        progress["completed_tasks"].append(task_id)
+        
+        # Добавляем очки
+        if "score" not in progress:
+            progress["score"] = 0
+        progress["score"] += score
+        
+        # Определяем уровень из task_id
+        level_num = 1
+        if task_id and isinstance(task_id, str):
+            if task_id.startswith("level_"):
+                parts = task_id.split("_")
+                if len(parts) >= 2:
+                    try:
+                        level_num = int(parts[1])
+                    except:
+                        pass
+            elif task_id.startswith("task_"):
+                parts = task_id.split("_")
+                if len(parts) >= 2:
+                    try:
+                        level_num = int(parts[1])
+                    except:
+                        pass
+        
+        level_key = str(level_num)
+        
+        # Обновляем прогресс уровня
+        if "level_progress" not in progress:
+            progress["level_progress"] = {}
+        
+        if level_key not in progress["level_progress"]:
+            progress["level_progress"][level_key] = {
+                "completed": 0,
+                "unlocked": True
+            }
+        
+        # Увеличиваем счетчик выполненных задач для уровня
+        current_completed = progress["level_progress"][level_key].get("completed", 0)
+        progress["level_progress"][level_key]["completed"] = current_completed + 1
+        
+        # Убеждаемся, что уровень разблокирован
+        progress["level_progress"][level_key]["unlocked"] = True
+        
+        # Разблокируем следующий уровень если нужно
+        if progress["level_progress"][level_key]["completed"] >= 2:
+            next_level = level_num + 1
+            if next_level <= 5:
+                next_key = str(next_level)
+                if next_key not in progress["level_progress"]:
+                    progress["level_progress"][next_key] = {
+                        "completed": 0,
+                        "unlocked": True
+                    }
+                else:
+                    progress["level_progress"][next_key]["unlocked"] = True
+        
+        # Сохраняем прогресс
+        save_progress(progress)
+        
+        return jsonify({
+            "success": True,
+            "message": "Задача выполнена",
+            "score": progress["score"],
+            "level_progress": progress["level_progress"]
+        })
+        
+    except Exception as e:
+        print(f"Ошибка в complete_task_api: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 @app.route('/api/game/stats')
 def game_stats():
     """Получить статистику игры"""
-    progress = load_progress()
-    
-    completed_levels = 0
-    current_level = 1
-    
-    # Проверяем все 5 уровней
-    for level_id in range(1, 6):
-        level_key = str(level_id)
-        if level_key in progress["level_progress"]:
-            completed = progress["level_progress"][level_key].get("completed", 0)
-            unlocked = progress["level_progress"][level_key].get("unlocked", False)
+    try:
+        progress = load_progress()
+        
+        # Обеспечиваем наличие всех полей
+        if "score" not in progress:
+            progress["score"] = 0
+        if "completed_tasks" not in progress:
+            progress["completed_tasks"] = []
+        if "level_progress" not in progress:
+            progress["level_progress"] = {}
+        
+        # Инициализируем все уровни
+        for i in range(1, 6):
+            level_key = str(i)
+            if level_key not in progress["level_progress"]:
+                progress["level_progress"][level_key] = {
+                    "completed": 0,
+                    "unlocked": (i == 1)
+                }
+        
+        # Определяем текущий уровень
+        current_level = 1
+        completed_count = 0
+        
+        for i in range(1, 6):
+            level_key = str(i)
+            level_data = progress["level_progress"].get(level_key, {})
+            completed = level_data.get("completed", 0)
+            unlocked = level_data.get("unlocked", False)
             
             if completed >= 2:
-                completed_levels += 1
+                completed_count += 1
             
             if unlocked:
-                current_level = level_id
-            else:
-                break
-    
-    current_level = min(current_level, 5)
-    
-    return jsonify({
-        "success": True,
-        "score": progress.get("score", 0),
-        "total_tasks": len(progress.get("completed_tasks", [])),
-        "level_progress": progress.get("level_progress", {}),
-        "current_level": current_level,
-        "completed_levels": completed_levels
-    })
+                current_level = i
+        
+        return jsonify({
+            "success": True,
+            "score": progress["score"],
+            "total_tasks": len(progress["completed_tasks"]),
+            "level_progress": progress["level_progress"],
+            "current_level": current_level,
+            "completed_levels": completed_count
+        })
+        
+    except Exception as e:
+        print(f"Ошибка в game_stats: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
 
 @app.route('/api/ai/hint', methods=['POST'])
 def get_hint():
@@ -440,13 +606,13 @@ def get_hint():
         "sin(30°)": "sin(30°) = 1/2 = 0.5",
         "cos(60°)": "cos(60°) = 1/2 = 0.5",
         "tan(45°)": "tan(45°) = 1",
-        "sin(x) = 0.5": "sin(x)=0.5 при x=30° или 150°",
-        "cos(x) = √2/2": "cos(x)=√2/2 при x=45° или 315°",
+        "sin(x) = 0.5": "sin(x)=0.5 при x=30° или 150° (π/6 или 5π/6 в радианах)",
+        "cos(x) = √2/2": "cos(x)=√2/2 при x=45° или 315° (π/4 или 7π/4 в радианах)",
         "период": "Период sin(x) и cos(x) = 2π",
         "π/6": "π/6 радиан = 30°",
         "60°": "sin(60°) = √3/2",
         "sin²": "Основное тригонометрическое тождество: sin²(x) + cos²(x) = 1",
-        "tan²": "1 + tan²(x) = 1/cos²(x)",
+        "tan²": "1 + tan²(x) = sec²(x)",
         "sin(π/2": "Формула приведения: sin(π/2 - x) = cos(x)",
         "sin(2x)": "Формула двойного угла: sin(2x) = 2sin(x)cos(x)",
         "cos(2x)": "cos(2x) = cos²(x) - sin²(x) = 2cos²(x) - 1 = 1 - 2sin²(x)"
@@ -469,12 +635,12 @@ def explain_concept():
     
     # Простые объяснения
     explanations = {
-        "синус": "Синус угла в прямоугольном треугольнике — отношение противолежащего катета к гипотенузе.",
-        "косинус": "Косинус угла — отношение прилежащего катета к гипотенузе.",
+        "синус": "Синус угла в прямоугольном треугольнике — отношение противолежащего катета к гипотенузе. На единичной окружности синус - это координата y точки.",
+        "косинус": "Косинус угла — отношение прилежащего катета к гипотенузе. На единичной окружности косинус - это координата x точки.",
         "тангенс": "Тангенс — отношение синуса к косинусу (противолежащего катета к прилежащему).",
         "тригонометрия": "Тригонометрия изучает соотношения между сторонами и углами треугольников.",
-        "единичная окружность": "Окружность радиуса 1, используемая для определения тригонометрических функций.",
-        "период": "Период функции — наименьший интервал, через который значения функции повторяются.",
+        "единичная окружность": "Окружность радиуса 1, используемая для определения тригонометрических функций. Точка на окружности имеет координаты (cosθ, sinθ).",
+        "период": "Период функции — наименьший интервал, через который значения функции повторяются. Для sin и cos период = 2π.",
         "тождество": "Тригонометрическое тождество — равенство, справедливое для всех значений переменных.",
         "формула двойного угла": "Формулы, выражающие тригонометрические функции двойного угла через функции одинарного угла."
     }
@@ -490,21 +656,38 @@ def explain_concept():
 
 @app.route('/api/game/reset', methods=['POST'])
 def reset_game():
-    """Сбросить игру"""
-    initial_data = {
-        "score": 0,
-        "completed_tasks": [],
-        "level_progress": {
-            "1": {"completed": 0, "unlocked": True},
-            "2": {"completed": 0, "unlocked": False},
-            "3": {"completed": 0, "unlocked": False},
-            "4": {"completed": 0, "unlocked": False},
-            "5": {"completed": 0, "unlocked": False}
+    """Сброс прогресса игры"""
+    try:
+        # Создаем начальный прогресс
+        initial_progress = {
+            "score": 0,
+            "completed_tasks": [],
+            "level_progress": {}
         }
-    }
-    
-    save_progress(initial_data)
-    return jsonify({"success": True, "message": "Игра сброшена"})
+        
+        # Инициализируем все уровни
+        for i in range(1, 6):
+            initial_progress["level_progress"][str(i)] = {
+                "completed": 0,
+                "unlocked": (i == 1)
+            }
+        
+        # Сохраняем
+        save_progress(initial_progress)
+        
+        return jsonify({"success": True, "message": "Прогресс сброшен"})
+        
+    except Exception as e:
+        print(f"Ошибка при сбросе прогресса: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/api/debug/progress')
+def debug_progress():
+    """Показать текущий прогресс (только для отладки)"""
+    progress = load_progress()
+    return jsonify(progress)
+
 
 @app.route('/health')
 def health_check():
@@ -512,7 +695,8 @@ def health_check():
     return jsonify({
         "status": "healthy",
         "message": "Trigonometry Quest работает",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "matplotlib": MATPLOTLIB_AVAILABLE
     })
 
 # ========== ЗАПУСК СЕРВЕРА ==========
@@ -526,6 +710,7 @@ if __name__ == '__main__':
     print("📚 Уровни: http://localhost:5000/levels")
     print("🔬 Лаборатория: http://localhost:5000/lab")
     print("🩺 Health: http://localhost:5000/health")
+    print("🔍 Debug: http://localhost:5000/api/debug/progress")
     print("=" * 60)
     
     if MATPLOTLIB_AVAILABLE:

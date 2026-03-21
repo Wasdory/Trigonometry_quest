@@ -1,3 +1,4 @@
+[file name]: style.css
 /* Основные стили для всего проекта */
 * {
     margin: 0;
@@ -301,4 +302,204 @@ body {
 
 .feature-card:nth-child(4) {
     animation-delay: 0.3s;
+}
+
+/* ========== СТИЛИ ДЛЯ ШАПКИ САЙТА ========== */
+
+.site-header {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    padding: 15px 0;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100%;
+}
+
+.header-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.logo-link {
+    text-decoration: none;
+    color: white;
+    display: flex;
+    align-items: center;
+    transition: transform 0.3s ease;
+}
+
+.logo-link:hover {
+    transform: scale(1.05);
+}
+
+.logo-link .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+}
+
+.logo-link .logo i {
+    font-size: 2rem;
+    color: white;
+}
+
+.logo-link .logo h1 {
+    font-size: 1.8rem;
+    margin: 0;
+    font-weight: bold;
+    color: white;
+}
+
+.header-nav {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.nav-link {
+    color: white;
+    text-decoration: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.nav-link.active {
+    background: rgba(255, 255, 255, 0.3);
+    font-weight: bold;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.header-user {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 8px 15px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    min-width: 80px;
+    justify-content: center;
+}
+
+.user-score-header {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.user-score-header i {
+    color: #FFD700;
+    font-size: 1.2rem;
+}
+
+/* Адаптивность для шапки */
+@media (max-width: 1024px) {
+    .header-container {
+        padding: 0 20px;
+    }
+    
+    .logo-link .logo h1 {
+        font-size: 1.5rem;
+    }
+    
+    .nav-link {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .site-header {
+        padding: 10px 0;
+    }
+    
+    .header-container {
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px;
+    }
+    
+    .logo-link .logo h1 {
+        font-size: 1.4rem;
+    }
+    
+    .header-nav {
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .nav-link {
+        flex: 1;
+        justify-content: center;
+        min-width: 80px;
+    }
+    
+    .header-user {
+        width: 100%;
+        max-width: 150px;
+        margin: 0 auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo-link .logo i {
+        font-size: 1.5rem;
+    }
+    
+    .logo-link .logo h1 {
+        font-size: 1.2rem;
+    }
+    
+    .header-nav {
+        flex-wrap: wrap;
+    }
+    
+    .nav-link {
+        flex: auto;
+        padding: 5px 10px;
+        font-size: 0.85rem;
+    }
+    
+    .user-score-header {
+        font-size: 1rem;
+    }
+}
+
+/* Для страниц с контентом под шапкой */
+.game-container,
+.lab-container,
+.levels-container {
+    margin-top: 0;
+    padding-top: 20px;
+}
+
+/* Корректировка для главной страницы */
+.container {
+    padding-top: 20px;
+}
+
+/* Уведомления */
+.notification {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 1001;
 }

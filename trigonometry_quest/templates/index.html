@@ -8,6 +8,37 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <!-- Шапка сайта -->
+    <header class="site-header">
+        <div class="header-container">
+            <a href="/" class="logo-link">
+                <div class="logo">
+                    <i class="fas fa-calculator"></i>
+                    <h1>Trigonometry Quest</h1>
+                </div>
+            </a>
+            <nav class="header-nav">
+                <a href="/" class="nav-link active">
+                    <i class="fas fa-home"></i> Главная
+                </a>
+                <a href="/game" class="nav-link">
+                    <i class="fas fa-gamepad"></i> Игра
+                </a>
+                <a href="/levels" class="nav-link">
+                    <i class="fas fa-layer-group"></i> Уровни
+                </a>
+                <a href="/lab" class="nav-link">
+                    <i class="fas fa-flask"></i> Лаборатория
+                </a>
+            </nav>
+            <div class="header-user">
+                <span class="user-score-header">
+                    <i class="fas fa-star"></i> <span id="header-score">0</span>
+                </span>
+            </div>
+        </div>
+    </header>
+
     <div class="container">
         <header class="header">
             <div class="logo">
@@ -35,20 +66,20 @@
                 
                 <div class="feature-card" onclick="window.location.href='/lab'">
                     <div class="feature-icon">
-                        <i class="fas fa-flask"></i>
-                    </div>
-                    <h3>🔬 AI-лаборатория</h3>
-                    <p>Экспериментируйте с графиками функций и получайте помощь от AI-помощника.</p>
-                    <button class="btn">Открыть лабораторию</button>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">
                         <i class="fas fa-chart-line"></i>
                     </div>
                     <h3>📊 Визуализация</h3>
                     <p>Стройте графики тригонометрических функций в реальном времени с настройками.</p>
-                    <button class="btn" onclick="window.location.href='/lab'">Построить графики</button>
+                    <button class="btn">Построить графики</button>
+                </div>
+                
+                <div class="feature-card" onclick="window.location.href='/levels'">
+                    <div class="feature-icon">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <h3>📚 Все уровни</h3>
+                    <p>Просмотр всех доступных уровней и вашего прогресса в них.</p>
+                    <button class="btn">Выбрать уровень</button>
                 </div>
                 
                 <div class="feature-card">
@@ -113,5 +144,19 @@
     </div>
     
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        // Загрузка статистики для отображения в шапке
+        async function loadHeaderStats() {
+            try {
+                const response = await fetch('/api/game/stats');
+                const data = await response.json();
+                document.getElementById('header-score').textContent = data.score || 0;
+            } catch (error) {
+                console.error('Ошибка загрузки статистики:', error);
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', loadHeaderStats);
+    </script>
 </body>
 </html>

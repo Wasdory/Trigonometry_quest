@@ -9,6 +9,37 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <!-- Шапка сайта -->
+    <header class="site-header">
+        <div class="header-container">
+            <a href="/" class="logo-link">
+                <div class="logo">
+                    <i class="fas fa-calculator"></i>
+                    <h1>Trigonometry Quest</h1>
+                </div>
+            </a>
+            <nav class="header-nav">
+                <a href="/" class="nav-link">
+                    <i class="fas fa-home"></i> Главная
+                </a>
+                <a href="/game" class="nav-link active">
+                    <i class="fas fa-gamepad"></i> Игра
+                </a>
+                <a href="/levels" class="nav-link">
+                    <i class="fas fa-layer-group"></i> Уровни
+                </a>
+                <a href="/lab" class="nav-link">
+                    <i class="fas fa-flask"></i> Лаборатория
+                </a>
+            </nav>
+            <div class="header-user">
+                <span class="user-score-header">
+                    <i class="fas fa-star"></i> <span id="header-score">0</span>
+                </span>
+            </div>
+        </div>
+    </header>
+
     <div class="game-container">
         <!-- Боковая панель -->
         <aside class="sidebar">
@@ -56,15 +87,6 @@
             </div>
             
             <div class="navigation">
-                <button class="nav-btn" onclick="window.location.href='/'">
-                    <i class="fas fa-home"></i> Главная
-                </button>
-                <button class="nav-btn" onclick="window.location.href='/levels'">
-                    <i class="fas fa-layer-group"></i> Все уровни
-                </button>
-                <button class="nav-btn" onclick="window.location.href='/lab'">
-                    <i class="fas fa-flask"></i> Лаборатория
-                </button>
                 <button class="nav-btn" onclick="resetProgress()">
                     <i class="fas fa-redo-alt"></i> Сбросить прогресс
                 </button>
@@ -158,65 +180,111 @@
         // Глобальные переменные
         let currentTask = null;
         let currentLevel = null;
+        let taskCompleted = false;
+        
+        // Функция для получения параметра из URL
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // Загрузка статистики для шапки
+        async function loadHeaderStats() {
+            try {
+                const response = await fetch('/api/game/stats');
+                const data = await response.json();
+                const headerScore = document.getElementById('header-score');
+                if (headerScore) {
+                    headerScore.textContent = data.score || 0;
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки статистики для шапки:', error);
+            }
+        }
 
         // Загрузка статистики игры
         async function loadGameStats() {
             try {
                 const response = await fetch('/api/game/stats');
-                const stats = await response.json();
-                updateUI(stats);
+                const data = await response.json();
+                
+                // Обновляем UI
+                updateUI(data);
                 
                 // Загружаем уровни
-                const levelsResponse = await fetch('/api/levels');
-                const levelsData = await levelsResponse.json();
-                loadLevelsUI(levelsData.levels, stats.level_progress);
+                await loadLevels();
+                
+                // Обновляем счет в шапке
+                await loadHeaderStats();
+                
+                // Проверяем уровень из URL
+                const urlLevel = getUrlParameter('level');
+                if (urlLevel && !currentLevel) {
+                    const levelNum = parseInt(urlLevel);
+                    if (!isNaN(levelNum) && levelNum >= 1 && levelNum <= 5) {
+                        startLevel(levelNum);
+                    }
+                }
                 
             } catch (error) {
                 console.error('Ошибка загрузки статистики:', error);
-                showNotification('error', 'Не удалось загрузить статистику игры');
+                // Показываем сообщение об ошибке
+                const container = document.getElementById('levels-container');
+                if (container) {
+                    container.innerHTML = '<div style="text-align:center; padding:50px; color:#f44336;">Не удалось загрузить статистику. Проверьте подключение к серверу.</div>';
+                }
             }
         }
 
-        // Обновление интерфейса
-        function updateUI(stats) {
-            // Обновляем счет
-            document.getElementById('score').textContent = stats.score || 0;
-            document.getElementById('total-tasks').textContent = stats.total_tasks || 0;
-            document.getElementById('level-display').textContent = stats.current_level || 1;
-            document.getElementById('current-level').textContent = stats.current_level || 1;
-            
-            // Обновляем достижения
-            document.getElementById('achievements-count').textContent = 
-                stats.unlocked_achievements ? stats.unlocked_achievements.length : 0;
+        // Загрузка уровней
+        async function loadLevels() {
+            try {
+                const response = await fetch('/api/levels');
+                const data = await response.json();
+                
+                // Загружаем статистику для прогресса
+                const statsResponse = await fetch('/api/game/stats');
+                const statsData = await statsResponse.json();
+                
+                displayLevels(data.levels || {}, statsData.level_progress || {});
+                
+            } catch (error) {
+                console.error('Ошибка загрузки уровней:', error);
+                // Показываем уровни по умолчанию
+                displayDefaultLevels();
+            }
         }
 
-        // Загрузка уровней в интерфейс
-        function loadLevelsUI(levels, progress) {
+        // Отображение уровней по умолчанию
+        function displayDefaultLevels() {
             const container = document.getElementById('levels-container');
+            if (!container) return;
+            
             container.innerHTML = '';
             
             for (let levelId = 1; levelId <= 5; levelId++) {
-                const level = levels[levelId];
-                const levelProgress = progress && progress[levelId] ? progress[levelId] : { completed: 0, required: 2 };
-                const progressPercent = (levelProgress.completed / levelProgress.required) * 100;
-                
                 const levelCard = document.createElement('div');
-                levelCard.className = `level-card ${level && level.unlocked ? 'unlocked' : 'locked'}`;
+                levelCard.className = `level-card ${levelId === 1 ? 'unlocked' : 'locked'}`;
+                if (levelId === 1) {
+                    levelCard.onclick = () => startLevel(levelId);
+                }
+                
                 levelCard.innerHTML = `
                     <h3><i class="fas fa-layer-group"></i> Уровень ${levelId}</h3>
-                    <div class="level-description">${level ? level.desc : 'Тригонометрические задачи'}</div>
+                    <div class="level-description">${getLevelDescription(levelId)}</div>
                     <div class="level-progress">
-                        <div class="level-progress-fill" style="width: ${progressPercent}%"></div>
+                        <div class="level-progress-fill" style="width: 0%"></div>
                     </div>
                     <div class="level-stats">
-                        <span>Прогресс: ${levelProgress.completed}/${levelProgress.required}</span>
-                        <span>${Math.round(progressPercent)}%</span>
+                        <span>Прогресс: 0/2</span>
+                        <span>0%</span>
                     </div>
                     <div class="level-actions">
                         <button class="start-level-btn" 
-                                onclick="startLevel(${levelId})"
-                                ${level && level.unlocked ? '' : 'disabled'}>
-                            ${level && level.unlocked ? 'Начать уровень' : 'Заблокировано'}
+                                onclick="event.stopPropagation(); startLevel(${levelId})"
+                                ${levelId === 1 ? '' : 'disabled'}>
+                            <i class="fas fa-${levelId === 1 ? 'play' : 'lock'}"></i>
+                            ${levelId === 1 ? 'Начать уровень' : 'Заблокировано'}
                         </button>
                     </div>
                 `;
@@ -225,208 +293,395 @@
             }
         }
 
+        // Функция отображения уровней
+        function displayLevels(levels, progress) {
+            const container = document.getElementById('levels-container');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            for (let levelId = 1; levelId <= 5; levelId++) {
+                // Получаем данные о прогрессе с проверкой на undefined
+                let completed = 0;
+                let required = 2;
+                let unlocked = (levelId === 1);
+                
+                // Проверяем разные форматы данных
+                if (progress) {
+                    // Пробуем получить данные по числовому ключу
+                    if (progress[levelId]) {
+                        completed = progress[levelId].completed !== undefined ? progress[levelId].completed : 0;
+                        required = progress[levelId].required !== undefined ? progress[levelId].required : 2;
+                        unlocked = progress[levelId].unlocked !== undefined ? progress[levelId].unlocked : (levelId === 1);
+                    } 
+                    // Пробуем по строковому ключу
+                    else if (progress[levelId.toString()]) {
+                        completed = progress[levelId.toString()].completed !== undefined ? progress[levelId.toString()].completed : 0;
+                        required = progress[levelId.toString()].required !== undefined ? progress[levelId.toString()].required : 2;
+                        unlocked = progress[levelId.toString()].unlocked !== undefined ? progress[levelId.toString()].unlocked : (levelId === 1);
+                    }
+                }
+                
+                // Безопасное вычисление процента
+                const progressPercent = required > 0 ? (completed / required) * 100 : 0;
+                const displayPercent = isNaN(progressPercent) ? 0 : Math.round(progressPercent);
+                
+                const levelCard = document.createElement('div');
+                levelCard.className = `level-card ${unlocked ? 'unlocked' : 'locked'}`;
+                if (unlocked) {
+                    levelCard.onclick = () => startLevel(levelId);
+                }
+                
+                levelCard.innerHTML = `
+                    <h3><i class="fas fa-layer-group"></i> Уровень ${levelId}</h3>
+                    <div class="level-description">${levels[levelId]?.desc || getLevelDescription(levelId)}</div>
+                    <div class="level-progress">
+                        <div class="level-progress-fill" style="width: ${progressPercent}%"></div>
+                    </div>
+                    <div class="level-stats">
+                        <span>Прогресс: ${completed}/${required}</span>
+                        <span>${displayPercent}%</span>
+                    </div>
+                    <div class="level-actions">
+                        <button class="start-level-btn" 
+                                onclick="event.stopPropagation(); startLevel(${levelId})"
+                                ${unlocked ? '' : 'disabled'}>
+                            <i class="fas fa-${unlocked ? 'play' : 'lock'}"></i>
+                            ${unlocked ? (completed >= required ? 'Повторить уровень' : 'Начать уровень') : 'Заблокировано'}
+                        </button>
+                    </div>
+                `;
+                
+                container.appendChild(levelCard);
+            }
+        }
+
+        // Описание уровней
+        function getLevelDescription(levelId) {
+            const descriptions = {
+                1: 'Базовые вычисления: sin, cos, tan',
+                2: 'Решение простых уравнений',
+                3: 'Свойства и графики функций',
+                4: 'Прикладные задачи из реальной жизни',
+                5: 'Сложные формулы и тождества'
+            };
+            return descriptions[levelId] || 'Тригонометрические задачи';
+        }
+
+        // Обновление интерфейса
+        function updateUI(stats) {
+            document.getElementById('score').textContent = stats.score || 0;
+            document.getElementById('total-tasks').textContent = stats.total_tasks || 0;
+            document.getElementById('level-display').textContent = stats.current_level || 1;
+            document.getElementById('current-level').textContent = stats.current_level || 1;
+            
+            const achievementsCount = stats.unlocked_achievements ? stats.unlocked_achievements.length : 0;
+            document.getElementById('achievements-count').textContent = achievementsCount;
+            
+            // Обновляем достижения
+            updateAchievements(stats.unlocked_achievements || []);
+        }
+
+        // Обновление достижений
+        function updateAchievements(achievements) {
+            const achievementsList = document.getElementById('achievements-list');
+            if (!achievementsList) return;
+            
+            if (achievements.length === 0) {
+                achievementsList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-star"></i>
+                        <p>Пока нет достижений</p>
+                        <small>Решайте задачи, чтобы получить достижения!</small>
+                    </div>
+                `;
+                return;
+            }
+            
+            achievementsList.innerHTML = achievements.map(achievement => `
+                <div class="achievement-item">
+                    <div class="achievement-icon">${achievement.icon || '🏆'}</div>
+                    <div class="achievement-info">
+                        <h5>${achievement.name || 'Достижение'}</h5>
+                        <p>${achievement.description || ''}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
         // Начать уровень
         async function startLevel(levelId) {
             try {
-                currentLevel = levelId;
+                // Сохраняем запрошенный уровень
+                const targetLevel = levelId;
+                currentLevel = targetLevel;
+                taskCompleted = false;
                 
-                const response = await fetch(`/api/tasks/${levelId}`);
+                const response = await fetch(`/api/tasks/${targetLevel}`);
                 const data = await response.json();
                 
                 if (data && data.task) {
                     currentTask = data.task;
-                    
-                    // Показываем секцию с задачей
-                    const taskSection = document.getElementById('task-section');
-                    taskSection.style.display = 'block';
-                    
-                    // Обновляем информацию о задаче
-                    document.getElementById('task-level').innerHTML = `<i class="fas fa-layer-group"></i> Уровень ${levelId}`;
-                    document.getElementById('task-text').textContent = currentTask.question || currentTask.text || 'Описание задачи';
-                    document.getElementById('task-points').textContent = `${currentTask.points || 10} очков`;
-                    
-                    // Очищаем предыдущие результаты
-                    const resultArea = document.getElementById('result-area');
-                    resultArea.innerHTML = '';
-                    resultArea.className = 'result-area';
-                    
-                    const hintDisplay = document.getElementById('hint-display');
-                    hintDisplay.innerHTML = '';
-                    hintDisplay.style.display = 'none';
-                    
-                    const answerInput = document.getElementById('answer-input');
-                    answerInput.value = '';
-                    answerInput.focus();
-                    
-                    // Прокручиваем к задаче
-                    taskSection.scrollIntoView({ behavior: 'smooth' });
-                    
-                    showNotification('success', `Загружена задача уровня ${levelId}`);
+                } else {
+                    // Создаем тестовую задачу для этого уровня
+                    currentTask = createTestTask(targetLevel);
                 }
+                
+                // Показываем секцию с задачей
+                document.getElementById('task-section').style.display = 'block';
+                
+                // Обновляем информацию о задаче
+                document.getElementById('task-level').innerHTML = `<i class="fas fa-layer-group"></i> Уровень ${targetLevel}`;
+                document.getElementById('task-text').textContent = currentTask.question || 'Найдите значение выражения';
+                document.getElementById('task-points').innerHTML = `<i class="fas fa-star"></i> <span>${currentTask.points || 10} очков</span>`;
+                
+                // Очищаем предыдущие результаты
+                document.getElementById('result-area').innerHTML = '';
+                document.getElementById('result-area').className = 'result-area';
+                document.getElementById('hint-display').style.display = 'none';
+                document.getElementById('hint-display').innerHTML = '';
+                document.getElementById('answer-input').value = '';
+                document.getElementById('answer-input').focus();
+                
             } catch (error) {
                 console.error('Ошибка при загрузке задачи:', error);
-                showNotification('error', 'Не удалось загрузить задачу');
+                alert('Не удалось загрузить задачу');
             }
         }
 
-        // Проверить ответ
-        async function checkAnswer() {
+        // Создание тестовой задачи
+        function createTestTask(levelId) {
+            const tasks = {
+                1: {
+                    id: 'level_1_task_1',
+                    question: 'Вычислите sin(π/2)',
+                    correct_answer: '1',
+                    points: 10
+                },
+                2: {
+                    id: 'level_2_task_1',
+                    question: 'Решите уравнение: sin(x) = 1/2',
+                    correct_answer: 'π/6',
+                    points: 15
+                },
+                3: {
+                    id: 'level_3_task_1',
+                    question: 'Найдите период функции y = sin(2x)',
+                    correct_answer: 'π',
+                    points: 20
+                },
+                4: {
+                    id: 'level_4_task_1',
+                    question: 'Высота волны: h(t) = 3·sin(2πt). Найдите максимальную высоту.',
+                    correct_answer: '3',
+                    points: 25
+                },
+                5: {
+                    id: 'level_5_task_1',
+                    question: 'Докажите тождество: sin²x + cos²x = 1',
+                    correct_answer: '1',
+                    points: 30
+                }
+            };
+            return tasks[levelId] || tasks[1];
+        }
+
+        // Проверка ответа
+        function checkAnswer() {
             const answerInput = document.getElementById('answer-input');
             const resultArea = document.getElementById('result-area');
             
             if (!answerInput || !currentTask) return;
             
-            const userAnswer = answerInput.value.trim();
-            if (!userAnswer) {
-                showNotification('info', 'Пожалуйста, введите ответ');
+            // Если задача уже выполнена, не даем отвечать снова
+            if (taskCompleted) {
+                resultArea.innerHTML = `
+                    <div style="text-align: center; padding: 20px; background: #fff8e1; border-radius: 8px;">
+                        <i class="fas fa-info-circle" style="color: #ff9800; font-size: 2rem;"></i>
+                        <h3 style="color: #ff9800; margin: 10px 0;">Задача уже решена</h3>
+                        <p>Нажмите "Другая задача" для новой задачи</p>
+                    </div>
+                `;
+                resultArea.className = 'result-area';
                 return;
             }
             
-            // Показываем загрузку
+            const userAnswer = answerInput.value.trim();
+            if (!userAnswer) {
+                alert('Пожалуйста, введите ответ');
+                return;
+            }
+            
+            // Показываем индикатор загрузки
             resultArea.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Проверяем ответ...';
             resultArea.className = 'result-area';
             
+            // Получаем правильный ответ
+            let correctAnswer = currentTask.correct_answer || currentTask.answer || '1';
+            
+            // Используем улучшенное сравнение
+            const isCorrect = compareAnswersImproved(userAnswer, correctAnswer);
+            
+            if (isCorrect) {
+                // Устанавливаем флаг, что задача выполнена
+                taskCompleted = true;
+                
+                // Правильный ответ
+                resultArea.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <i class="fas fa-check-circle" style="color: #4CAF50; font-size: 3rem;"></i>
+                        <h3 style="color: #4CAF50; margin: 15px 0;">Правильно!</h3>
+                        <p>Вы заработали ${currentTask.points || 10} очков!</p>
+                        <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+                            Нажмите "Другая задача" для продолжения
+                        </p>
+                    </div>
+                `;
+                resultArea.className = 'result-area success';
+                
+                // Отправляем на сервер
+                completeTask(currentTask.id || ('level_' + currentLevel + '_task_1'), currentTask.points || 10);
+                
+                // Очищаем поле ввода
+                answerInput.value = '';
+                
+            } else {
+                // Неправильный ответ
+                resultArea.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <i class="fas fa-times-circle" style="color: #f44336; font-size: 3rem;"></i>
+                        <h3 style="color: #f44336; margin: 15px 0;">Неправильно</h3>
+                        <p>Попробуйте еще раз!</p>
+                    </div>
+                `;
+                resultArea.className = 'result-area error';
+            }
+        }
+
+        // Улучшенная функция сравнения ответов
+        function compareAnswersImproved(user, correct) {
+            if (!user || !correct) return false;
+            
+            const userStr = user.toString().trim().toLowerCase();
+            const correctStr = correct.toString().trim().toLowerCase();
+            
+            // Прямое сравнение
+            if (userStr === correctStr) return true;
+            
+            // Проверка числовых значений
+            const userNum = parseFloat(userStr);
+            const correctNum = parseFloat(correctStr);
+            
+            if (!isNaN(userNum) && !isNaN(correctNum)) {
+                // Сравнение с погрешностью
+                if (Math.abs(userNum - correctNum) < 0.0001) return true;
+                
+                // Для целых чисел: 1.0 vs 1
+                if (Math.round(userNum) === Math.round(correctNum) && 
+                    Math.abs(userNum - correctNum) < 0.000001) return true;
+            }
+            
+            // Для дробей: 1/2 vs 0.5
+            if (userStr.includes('/')) {
+                try {
+                    const parts = userStr.split('/');
+                    if (parts.length === 2) {
+                        const num = parseFloat(parts[0]) / parseFloat(parts[1]);
+                        if (!isNaN(num) && !isNaN(correctNum) && Math.abs(num - correctNum) < 0.0001) return true;
+                    }
+                } catch (e) {}
+            }
+            
+            return false;
+        }
+
+        // Отметить задачу как выполненную
+        async function completeTask(taskId, points) {
             try {
-                const response = await fetch('/api/check', {
+                const response = await fetch('/api/game/complete', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        answer: userAnswer,
-                        task_id: currentTask.id || 'task_' + currentLevel + '_1'
-                    })
+                    body: JSON.stringify({ task_id: taskId, score: points })
                 });
                 
-                const result = await response.json();
+                const data = await response.json();
+                console.log('Задача завершена:', data);
                 
-                if (result.correct) {
-                    resultArea.innerHTML = `
-                        <div class="result-success">
-                            <i class="fas fa-check-circle"></i> 
-                            <div>
-                                <strong>Правильно!</strong>
-                                <p>${result.message || 'Отличная работа!'}</p>
-                                <p class="points-earned">Вы заработали ${result.points || 10} очков!</p>
-                            </div>
-                        </div>
-                    `;
-                    resultArea.className = 'result-area success';
-                    
-                    // Обновляем статистику
-                    setTimeout(loadGameStats, 1000);
-                    
-                    // Очищаем поле ввода
-                    answerInput.value = '';
-                    
-                } else {
-                    resultArea.innerHTML = `
-                        <div class="result-error">
-                            <i class="fas fa-times-circle"></i>
-                            <div>
-                                <strong>Неправильно</strong>
-                                <p>${result.message || 'Попробуйте еще раз!'}</p>
-                            </div>
-                        </div>
-                    `;
-                    resultArea.className = 'result-area error';
+                // Обновляем статистику после успешного ответа
+                if (data.success) {
+                    await loadGameStats();
                 }
             } catch (error) {
-                console.error('Ошибка при проверке ответа:', error);
-                resultArea.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Ошибка при проверке ответа';
-                resultArea.className = 'result-area error';
+                console.error('Ошибка при завершении задачи:', error);
             }
         }
 
         // Получить подсказку
-        async function getHint() {
+        function getHint() {
             if (!currentTask) return;
             
             const hintDisplay = document.getElementById('hint-display');
-            hintDisplay.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Получаем подсказку...';
-            hintDisplay.style.display = 'block';
+            let hint = '';
             
-            try {
-                const response = await fetch('/api/ai/hint', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ question: currentTask.question })
-                });
-                
-                const result = await response.json();
-                
-                if (result.hint) {
-                    hintDisplay.innerHTML = `
-                        <div class="hint-content">
-                            <strong><i class="fas fa-lightbulb"></i> Подсказка:</strong>
-                            <p>${result.hint}</p>
-                        </div>
-                    `;
-                }
-            } catch (error) {
-                console.error('Ошибка при получении подсказки:', error);
-                hintDisplay.innerHTML = 'Не удалось получить подсказку';
+            if (currentTask.question && currentTask.question.includes('sin')) {
+                hint = 'Вспомните значение синуса на единичной окружности. sin(π/2) = 1';
+            } else if (currentTask.question && currentTask.question.includes('cos')) {
+                hint = 'Косинус 0 равен 1. Посмотрите на единичную окружность.';
+            } else {
+                hint = 'Используйте табличные значения тригонометрических функций.';
             }
+            
+            hintDisplay.innerHTML = `
+                <div style="padding: 15px; background: #fff8e1; border-radius: 8px;">
+                    <strong><i class="fas fa-lightbulb"></i> Подсказка:</strong>
+                    <p style="margin-top: 10px;">${hint}</p>
+                </div>
+            `;
+            hintDisplay.style.display = 'block';
         }
 
         // Объяснить задачу
-        async function explainTask() {
+        function explainTask() {
             if (!currentTask) return;
             
             const resultArea = document.getElementById('result-area');
-            resultArea.innerHTML = '<i class="fas fa-spinner fa-spin"></i> AI объясняет задачу...';
-            resultArea.className = 'result-area';
+            let explanation = '';
             
-            try {
-                const response = await fetch('/api/ai/explain', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ concept: currentTask.question })
-                });
-                
-                const result = await response.json();
-                
-                if (result.explanation) {
-                    resultArea.innerHTML = `
-                        <div class="ai-explanation">
-                            <strong><i class="fas fa-robot"></i> Объяснение AI:</strong>
-                            <p>${result.explanation}</p>
-                        </div>
-                    `;
-                    resultArea.className = 'result-area success';
-                }
-            } catch (error) {
-                console.error('Ошибка при получении объяснения:', error);
-                resultArea.innerHTML = 'Не удалось получить объяснение';
-                resultArea.className = 'result-area error';
+            if (currentTask.question && currentTask.question.includes('sin')) {
+                explanation = 'Синус угла в прямоугольном треугольнике — отношение противолежащего катета к гипотенузе. На единичной окружности синус угла равен координате y точки. Для угла π/2 (90°) точка находится наверху окружности с координатами (0,1), поэтому sin(π/2) = 1.';
+            } else {
+                explanation = 'Тригонометрические функции можно найти с помощью единичной окружности или табличных значений. Основные значения: sin(0)=0, sin(π/6)=1/2, sin(π/4)=√2/2, sin(π/3)=√3/2, sin(π/2)=1.';
             }
+            
+            resultArea.innerHTML = `
+                <div style="padding: 20px; background: #e8f5e9; border-radius: 8px;">
+                    <strong><i class="fas fa-robot"></i> Объяснение:</strong>
+                    <p style="margin-top: 10px; line-height: 1.6;">${explanation}</p>
+                </div>
+            `;
+            resultArea.className = 'result-area success';
         }
 
         // Пропустить задачу
         function skipTask() {
-            const answerInput = document.getElementById('answer-input');
-            const resultArea = document.getElementById('result-area');
-            
-            if (answerInput) answerInput.value = '';
-            if (resultArea) {
-                resultArea.innerHTML = '<i class="fas fa-forward"></i> Задача пропущена';
-                resultArea.className = 'result-area';
-            }
-            
-            // Загружаем новую задачу
             if (currentLevel) {
-                setTimeout(() => startLevel(currentLevel), 1000);
+                // Сохраняем текущий уровень перед загрузкой новой задачи
+                const levelToLoad = currentLevel;
+                // Сбрасываем флаг выполнения
+                taskCompleted = false;
+                // Загружаем новую задачу того же уровня
+                startLevel(levelToLoad);
             }
         }
 
         // Закрыть задачу
         function closeTask() {
-            const taskSection = document.getElementById('task-section');
-            if (taskSection) {
-                taskSection.style.display = 'none';
-            }
+            document.getElementById('task-section').style.display = 'none';
             currentTask = null;
+            taskCompleted = false;
         }
 
-        // Сбросить прогресс
+        // Сброс прогресса
         async function resetProgress() {
             if (!confirm('Вы уверены, что хотите сбросить весь прогресс? Это действие нельзя отменить.')) {
                 return;
@@ -438,75 +693,35 @@
                     headers: { 'Content-Type': 'application/json' }
                 });
                 
-                if (response.ok) {
-                    showNotification('success', 'Прогресс сброшен!');
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Прогресс сброшен! Страница будет перезагружена.');
+                    window.location.reload();
                 } else {
-                    throw new Error('Ошибка сброса');
+                    alert('Ошибка при сбросе: ' + (data.error || 'Неизвестная ошибка'));
                 }
                 
             } catch (error) {
                 console.error('Ошибка при сбросе прогресса:', error);
-                showNotification('error', 'Не удалось сбросить прогресс');
+                alert('Не удалось сбросить прогресс');
             }
         }
 
-        // Показать уведомление
-        function showNotification(type, message) {
-            // Создаем простое уведомление вверху страницы
-            const notification = document.createElement('div');
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 15px 25px;
-                border-radius: 10px;
-                color: white;
-                font-weight: bold;
-                z-index: 1000;
-                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            `;
-            
-            if (type === 'success') {
-                notification.style.background = 'linear-gradient(135deg, #4CAF50, #45a049)';
-            } else if (type === 'error') {
-                notification.style.background = 'linear-gradient(135deg, #f44336, #d32f2f)';
-            } else {
-                notification.style.background = 'linear-gradient(135deg, #2196F3, #1976D2)';
-            }
-            
-            notification.innerHTML = `
-                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-                <span style="margin-left: 10px;">${message}</span>
-            `;
-            
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 3000);
-        }
-
-        // Инициализация при загрузке страницы
+        // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
-            // Обработчик Enter в поле ввода
+            // Обработчик Enter
             const answerInput = document.getElementById('answer-input');
             if (answerInput) {
-                answerInput.addEventListener('keypress', function(event) {
-                    if (event.key === 'Enter') {
-                        checkAnswer();
-                    }
+                answerInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') checkAnswer();
                 });
             }
             
             // Загружаем статистику
             loadGameStats();
             
-            // Добавляем глобальные функции
+            // Делаем функции глобальными
             window.checkAnswer = checkAnswer;
             window.getHint = getHint;
             window.explainTask = explainTask;
@@ -514,6 +729,8 @@
             window.closeTask = closeTask;
             window.resetProgress = resetProgress;
             window.startLevel = startLevel;
+            
+            console.log('Игровая страница инициализирована');
         });
     </script>
 </body>
