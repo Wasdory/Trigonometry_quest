@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trigonometry Quest: AI-лаборатория</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Шапка сайта -->
+    <header class="site-header">
+        <div class="header-container">
+            <a href="/" class="logo-link">
+                <div class="logo">
+                    <i class="fas fa-calculator"></i>
+                    <h1>Trigonometry Quest</h1>
+                </div>
+            </a>
+            <nav class="header-nav">
+                <a href="/" class="nav-link active">
+                    <i class="fas fa-home"></i> Главная
+                </a>
+                <a href="/game" class="nav-link">
+                    <i class="fas fa-gamepad"></i> Игра
+                </a>
+                <a href="/levels" class="nav-link">
+                    <i class="fas fa-layer-group"></i> Уровни
+                </a>
+                <a href="/lab" class="nav-link">
+                    <i class="fas fa-flask"></i> Лаборатория
+                </a>
+            </nav>
+            <div class="header-user">
+                <span class="user-score-header">
+                    <i class="fas fa-star"></i> <span id="header-score">0</span>
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-calculator"></i>
+                <h1>Trigonometry Quest</h1>
+            </div>
+            <p class="subtitle">AI-лаборатория для изучения тригонометрии</p>
+        </header>
+        
+        <main class="main-content">
+            <div class="welcome-section">
+                <h2><i class="fas fa-rocket"></i> Добро пожаловать!</h2>
+                <p>Исследуйте мир тригонометрии через интерактивные задачи, программирование и искусственный интеллект.</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card" onclick="window.location.href='/game'">
+                    <div class="feature-icon">
+                        <i class="fas fa-gamepad"></i>
+                    </div>
+                    <h3>🎮 Игровой квест</h3>
+                    <p>Пройти 5 уровней тригонометрических испытаний с системой достижений и прогресса.</p>
+                    <button class="btn">Начать игру</button>
+                </div>
+                
+                <div class="feature-card" onclick="window.location.href='/lab'">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>📊 Визуализация</h3>
+                    <p>Стройте графики тригонометрических функций в реальном времени с настройками.</p>
+                    <button class="btn">Построить графики</button>
+                </div>
+                
+                <div class="feature-card" onclick="window.location.href='/levels'">
+                    <div class="feature-icon">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <h3>📚 Все уровни</h3>
+                    <p>Просмотр всех доступных уровней и вашего прогресса в них.</p>
+                    <button class="btn">Выбрать уровень</button>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <h3>🎓 Обучение</h3>
+                    <p>Изучайте тригонометрию с AI-объяснениями и пошаговыми решениями задач.</p>
+                    <button class="btn" onclick="askAI()">Задать вопрос AI</button>
+                </div>
+            </div>
+            
+            <div class="quick-stats">
+                <h3><i class="fas fa-tachometer-alt"></i> Быстрый старт</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <i class="fas fa-layer-group"></i>
+                        <span>5 уровней сложности</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-robot"></i>
+                        <span>AI-помощник</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-chart-area"></i>
+                        <span>Интерактивные графики</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-trophy"></i>
+                        <span>Система достижений</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <footer class="footer">
+            <div class="footer-content">
+                <p>Trigonometry Quest: AI-лаборатория &copy; 2024</p>
+                <p>Образовательный проект для изучения тригонометрии через программирование</p>
+                <div class="footer-links">
+                    <a href="/api/docs">API Документация</a>
+                    <span> | </span>
+                    <a href="#" onclick="showAbout()">О проекте</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- Модальное окно AI помощника -->
+    <div id="aiModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3><i class="fas fa-robot"></i> AI-помощник</h3>
+            <div class="ai-input">
+                <input type="text" id="aiQuestion" placeholder="Задайте вопрос о тригонометрии...">
+                <button onclick="sendAIQuestion()"><i class="fas fa-paper-plane"></i></button>
+            </div>
+            <div id="aiResponse" class="ai-response">
+                <p>Привет! Я AI-помощник по тригонометрии. Задайте мне вопрос, например: "Что такое синус?" или "Как решить уравнение sin(x)=0.5?"</p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        // Загрузка статистики для отображения в шапке
+        async function loadHeaderStats() {
+            try {
+                const response = await fetch('/api/game/stats');
+                const data = await response.json();
+                document.getElementById('header-score').textContent = data.score || 0;
+            } catch (error) {
+                console.error('Ошибка загрузки статистики:', error);
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', loadHeaderStats);
+    </script>
+</body>
+</html>
