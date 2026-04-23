@@ -42,7 +42,6 @@
             margin-bottom: 30px;
         }
         
-        /* Основная секция с графиком */
         .graph-section {
             background: white;
             border-radius: 15px;
@@ -214,7 +213,6 @@
             font-weight: bold;
         }
         
-        /* Боковая панель с примерами */
         .examples-section {
             background: white;
             border-radius: 15px;
@@ -278,7 +276,6 @@
             font-size: 0.9rem;
         }
         
-        /* История графиков */
         .history-section {
             background: white;
             border-radius: 15px;
@@ -395,7 +392,6 @@
             color: white;
         }
         
-        /* Уведомления */
         .notification {
             position: fixed;
             top: 80px;
@@ -439,7 +435,6 @@
             100% { transform: rotate(360deg); }
         }
         
-        /* Адаптивность */
         @media (max-width: 1024px) {
             .main-content {
                 grid-template-columns: 1fr;
@@ -472,7 +467,6 @@
     </style>
 </head>
 <body>
-    <!-- Шапка сайта -->
     <header class="site-header">
         <div class="header-container">
             <a href="/" class="logo-link">
@@ -510,7 +504,6 @@
         </div>
         
         <div class="main-content">
-            <!-- Основная секция с графиком -->
             <div class="graph-section">
                 <h2><i class="fas fa-chart-line"></i> Построитель графиков</h2>
                 
@@ -518,7 +511,7 @@
                     <div class="function-input">
                         <label for="function-input"><i class="fas fa-function"></i> Введите функцию f(x):</label>
                         <input type="text" id="function-input" value="sin(x)" 
-                               placeholder="Например: sin(x), cos(2*x), tan(x), sin(x)+cos(x)">
+                               placeholder="Например: sin(x), cos(2*x), tg(x), sin(x)+cos(x)">
                     </div>
                     
                     <button class="plot-btn" onclick="plotFunction()">
@@ -546,7 +539,7 @@
                 <div class="plot-info">
                     <h3><i class="fas fa-info-circle"></i> Справка</h3>
                     <ul>
-                        <li><code>sin(x)</code>, <code>cos(x)</code>, <code>tan(x)</code> - основные функции</li>
+                        <li><code>sin(x)</code>, <code>cos(x)</code>, <code>tg(x)</code> - основные функции</li>
                         <li><code>pi</code> или <code>π</code> - число π</li>
                         <li><code>sin(2*x)</code> - синус с коэффициентом</li>
                         <li><code>sin(x) + cos(x)</code> - сумма функций</li>
@@ -555,7 +548,6 @@
                 </div>
             </div>
             
-            <!-- Боковая панель с примерами и историей -->
             <div class="sidebar">
                 <div class="examples-section">
                     <h2><i class="fas fa-lightbulb"></i> Примеры</h2>
@@ -570,10 +562,10 @@
                             <h4>Косинус</h4>
                             <code>cos(x)</code>
                         </div>
-                        <div class="example-card" onclick="quickPlot('tan(x)')">
+                        <div class="example-card" onclick="quickPlot('tg(x)')">
                             <i class="fas fa-infinity"></i>
                             <h4>Тангенс</h4>
-                            <code>tan(x)</code>
+                            <code>tg(x)</code>
                         </div>
                         <div class="example-card" onclick="quickPlot('sin(2*x)')">
                             <i class="fas fa-tachometer-alt"></i>
@@ -608,11 +600,9 @@
     </div>
 
     <script>
-        // Глобальные переменные
         let currentPlotData = null;
         let graphHistory = JSON.parse(localStorage.getItem('graphHistory') || '[]');
         
-        // Показать уведомление
         function showNotification(type, message) {
             const notification = document.createElement('div');
             notification.className = `notification ${type}`;
@@ -624,7 +614,6 @@
             setTimeout(() => notification.remove(), 3000);
         }
         
-        // Загрузка статистики для шапки
         async function loadHeaderStats() {
             try {
                 const response = await fetch('/api/game/stats');
@@ -636,15 +625,31 @@
             }
         }
         
-        // Построить график
+        // Функция для замены tan на tg в подписях на изображении
+        // К сожалению, нельзя редактировать PNG на клиенте, поэтому нужно передавать правильную подпись на сервер
+        
         async function plotFunction() {
             const input = document.getElementById('function-input');
             const container = document.getElementById('plot-container');
-            const func = input.value.trim();
+            let func = input.value.trim();
             
             if (!func) {
                 showNotification('error', 'Введите функцию');
                 return;
+            }
+            
+            // Сохраняем отображаемое имя функции (с tg)
+            const displayName = func;
+            
+            // Для вычислений заменяем tg на tan
+            let computeFunc = func.replace(/tg\(/g, 'tan(');
+            // Если вся функция это просто "tg(x)"
+            if (computeFunc === 'tg(x)') {
+                computeFunc = 'tan(x)';
+            }
+            // Если функция начинается с "tg(" но не полностью совпадает
+            if (func.startsWith('tg(') && func !== 'tg(x)') {
+                computeFunc = func.replace(/^tg\(/, 'tan(');
             }
             
             container.innerHTML = `
@@ -657,25 +662,40 @@
             `;
             
             try {
+                // Отправляем на сервер функцию с tan для вычислений
                 const response = await fetch('/api/plot/simple', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ function: func })
+                    body: JSON.stringify({ 
+                        function: computeFunc,
+                        display_name: displayName  // Добавляем отображаемое имя
+                    })
                 });
                 
                 const data = await response.json();
                 
                 if (data.success && data.plot) {
-                    currentPlotData = { function: func, plot: data.plot };
+                    // Создаем изображение
+                    const img = document.createElement('img');
+                    img.src = data.plot;
+                    img.style.maxWidth = '100%';
+                    img.style.borderRadius = '10px';
                     
-                    container.innerHTML = `
-                        <div style="width: 100%; text-align: center;">
-                            <img src="${data.plot}" alt="График" style="max-width: 100%; border-radius: 10px;">
-                            <p style="margin-top: 15px; color: #4CAF50;">f(x) = ${func}</p>
-                        </div>
-                    `;
+                    // Очищаем контейнер и добавляем изображение
+                    container.innerHTML = '';
+                    container.appendChild(img);
                     
-                    addToHistory(func, data.plot);
+                    // Добавляем подпись отдельно, чтобы гарантировать правильное отображение
+                    const caption = document.createElement('p');
+                    caption.style.marginTop = '15px';
+                    caption.style.color = '#4CAF50';
+                    caption.style.textAlign = 'center';
+                    caption.style.fontWeight = 'bold';
+                    caption.innerHTML = `f(x) = ${displayName}`;
+                    container.appendChild(caption);
+                    
+                    currentPlotData = { function: displayName, plot: data.plot };
+                    addToHistory(displayName, data.plot);
                     showNotification('success', 'График построен');
                 } else {
                     throw new Error(data.error || 'Ошибка');
@@ -686,19 +706,18 @@
                         <i class="fas fa-exclamation-triangle" style="color: #f44336;"></i>
                         <h3>Ошибка</h3>
                         <p>${error.message}</p>
+                        <small>Попробуйте: sin(x), cos(x), tg(x), sin(2*x)</small>
                     </div>
                 `;
                 showNotification('error', 'Ошибка построения');
             }
         }
         
-        // Быстрое построение
         function quickPlot(func) {
             document.getElementById('function-input').value = func;
             plotFunction();
         }
         
-        // Очистить график
         function clearGraph() {
             document.getElementById('plot-container').innerHTML = `
                 <div class="plot-placeholder">
@@ -711,7 +730,6 @@
             showNotification('info', 'График очищен');
         }
         
-        // Сохранить график
         function saveGraph() {
             if (!currentPlotData) {
                 showNotification('info', 'Сначала постройте график');
@@ -725,7 +743,6 @@
             showNotification('success', 'График сохранен');
         }
         
-        // Добавить в историю
         function addToHistory(func, plot) {
             const historyItem = {
                 id: Date.now(),
@@ -740,7 +757,6 @@
             updateHistory();
         }
         
-        // Обновить историю
         function updateHistory() {
             const container = document.getElementById('graph-history');
             
@@ -755,7 +771,7 @@
             }
             
             container.innerHTML = graphHistory.map(item => `
-                <div class="history-item" onclick="loadFromHistory('${item.function}')">
+                <div class="history-item" onclick="loadFromHistory('${item.function.replace(/'/g, "\\'")}')">
                     <div class="history-thumbnail">
                         <img src="${item.plot}" alt="Thumb">
                     </div>
@@ -770,13 +786,11 @@
             `).join('');
         }
         
-        // Загрузить из истории
         function loadFromHistory(func) {
             document.getElementById('function-input').value = func;
             plotFunction();
         }
         
-        // Удалить из истории
         function deleteFromHistory(id) {
             graphHistory = graphHistory.filter(item => item.id !== id);
             localStorage.setItem('graphHistory', JSON.stringify(graphHistory));
@@ -784,7 +798,6 @@
             showNotification('info', 'Запись удалена');
         }
         
-        // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
             updateHistory();
             loadHeaderStats();
